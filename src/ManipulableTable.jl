@@ -3,12 +3,39 @@ mutable struct ManipulableTable
     subdata::Array{Flipping.PhotometryStructure}
     categorical::AbstractArray{CategoricalVariable}
     continouos::AbstractArray{ContinuousVariable}
+    plotdata
+    splitby
+    compute_error
     x_axis
     y_axis
+    axis_type
+    smoother
+    plot_type
     plt
     Button
     widget
-    #data::AbstractDataFrame
+end
+
+function ManipulableTable(data::Array{Flipping.PhotometryStructure},bhv_type::Symbol)
+    categorical, continouos, names = buildvars(data,bhv_type)
+    plt = Observable{Any}(plot(rand(10)))
+    Button = button("Plot");
+    plotter = observe(Button)
+    subdata = map(t -> filterdf(data,categorical,continouos,bhv_type),plotter)
+    plotdata = map(t->convertin_DB(subdata[],bhv_type),subdata)
+    splitby = checkboxes(names,label = "Split By")
+    compute_error = dropdown(vcat(["none","bootstrap","all"],names),label = "Compute_error")
+    x_axis = dropdown(names,label = "X axis")
+    y_axis = dropdown(names,label = "Y axis")
+    axis_type = dropdown(x_type_dict,label = "X variable Type")
+    smoother = slider(1:100,label = "Smoother")
+    plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
+    widget = hbox(layout(categorical),layout(continouos),vbox(hbox(x_axis,y_axis,Button),plt,smoother),vbox(plot_type,axis_type,compute_error,splitby))
+    mt = ManipulableTable(bhv_type, subdata[], categorical, continouos,
+    plotdata,splitby,compute_error,x_axis,y_axis,axis_type,smoother,plot_type,
+    plt,Button,widget)
+    map!(t -> makeplot(mt), plt, subdata)
+    mt
 end
 
 
@@ -44,16 +71,5 @@ function makeplot(x, y, df)
     plot(xcol, ycol)
 end
 
-function ManipulableTable(data::Array{Flipping.PhotometryStructure},bhv_type::Symbol)
-    categorical, continouos, names = buildvars(data,bhv_type)
-    x_axis = dropdown(names,label = "X axis")
-    y_axis = dropdown(names,label = "Y axis")
-    plt = Observable{Any}(plot(rand(10)))
-    Button = button("Plot");
-    plotter = observe(Button)
-    subdata = map(t -> filterdf(data,categorical,continouos,bhv_type),plotter)
-    map!(t -> makeplot(observe(x_axis)[], observe(y_axis)[], t, bhv_type), plt, subdata)
-    widget = hbox(layout(categorical),layout(continouos),vbox(hbox(x_axis,y_axis,Button),plt))
-    ManipulableTable(bhv_type, subdata[], categorical, continouos,x_axis,y_axis,plt,Button,widget)
-end
+
 # autocomplete(["ire","oro"])

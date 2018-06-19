@@ -1,5 +1,5 @@
-@with_kw struct Analysis{T}
-    data#indexed table
+@with_kw struct Analysis
+    data #indexed table
     splitby = () #tupla of symbols
     compute_error = nothing #tupla (:none, ) (:across, :MouseID) (:bootstrap, 100) (:across, :all)
     x = nothing #:Symbol
@@ -18,6 +18,33 @@ end
 function Analysis(a::Analysis; kwargs...)
     d = Dict(kwargs)
     Analysis((get(d, f, getfield(a, f)) for f in fieldnames(a))...)
+end
+
+function Analysis(df::ManipulableTable)
+    data = observe(df.plotdata)[]#indexed table
+    splitby = Tuple(observe(df.splitby)[]) #tupla of symbols
+    compute_error = get_error(df) #tupla (:none, ) (:across, :MouseID) (:bootstrap, 100) (:across, :all)
+    x = Symbol(observe(df.x_axis)[])
+    y = Symbol(observe(df.y_axis)[])
+    axis_type = Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
+    smoother = observe(df.smoother)[]
+    package = GroupedError()
+    plot = plot_dict[observe(df.plot_type)[]] #function plot, groupedbar,
+    plot_kwargs = []
+    Analysis(data = data, splitby = splitby, compute_error = compute_error,
+    x=x,y=y, axis_type = axis_type,smoother=smoother,package=package,
+    plot=plot,plot_kwargs = plot_kwargs, xfunc = mean, yfunc = mean)
+end
+
+function get_error(df::ManipulableTable)
+    inputvalue = observe(df.compute_error)[]
+    if inputvalue == "none"
+        return nothing
+    elseif inputvalue == "bootstrap"
+        return (:bootstrap,observe(df.smoother)[])
+    else
+        return(:across, Symbol(inputvalue))
+    end
 end
 
 struct StatPlotsRecipe; end

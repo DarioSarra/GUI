@@ -21,3 +21,8 @@ function makeplot(x_axis, y_axis, t::Array{Flipping.PhotometryStructure},field::
             @plot
     end
 end
+
+function makeplot(df::ManipulableTable)
+        a = Analysis(df)
+        process(a)
+end

@@ -27,7 +27,7 @@ isbinned(a) = a.axis_type == :binned
 
 iscontinuous(a) = !ispointbypoint(a) && !isdiscrete(a) && !isbinned(a)
 
-function process(::Type{GroupedError}, a::Analysis)
+function process(::GroupedError, a::Analysis)
     s = GroupedErrors.ColumnSelector(a.data)
     s = GroupedErrors._splitby(s, Symbol[splitby(a)...])
     s = compute_error(s, a.compute_error)
@@ -40,6 +40,6 @@ function process(::Type{GroupedError}, a::Analysis)
         s = GroupedErrors._x(s, a.x, a.xfunc)
         s = GroupedErrors._y(s, a.y, a.yfunc)
     end
-    plot_closure(args...; kwargs...) = a.plot(args...; kwargs..., get_style(a.data)..., a.plot_kwargs...)
+    plot_closure(args...; kwargs...) = a.plot(args...; kwargs..., a.plot_kwargs...)
     (a.plot == plot) ? @plot(s, plot_closure(), :ribbon) : @plot(s, plot_closure())
 end

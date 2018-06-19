@@ -1,6 +1,8 @@
 using InteractBulma
 using GroupedErrors
+using StatPlots
 using Plots
+import GR
 using Blink
 using Observables
 using CSSUtil
@@ -9,18 +11,23 @@ using WebIO
 using Query
 using Parameters
 using Flipping
-#using JuliaDBMeta
+
 
 include("ColumnTypes.jl")
 include("ManipulableTable.jl")
+include("process.jl")
+include("dropdownoptions.jl")
 include("loader.jl")
 include("plotter.jl")
 include("evaluatecolumns.jl")
 include("plotter.jl")
+include(joinpath("process","groupederrors.jl"))
 include(joinpath("layout","overall_layout.jl"))
 
 
 ##
+df = pokes[];
+observe(df.compute_error)[]
 ##
 typeof(data[])
 unique(data[],:Gen,:pokes)

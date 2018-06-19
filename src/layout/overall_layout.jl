@@ -1,4 +1,3 @@
-
 pokes = Observable{Any}(ManipulableTable(data[],:pokes))
 map!(ManipulableTable,pokes,data,:pokes)
 streaks = Observable{Any}(ManipulableTable(data[],:streaks))
