@@ -5,9 +5,13 @@ map!(ManipulableTable,streaks,data,:streaks)
 
 pokeswidget = dom"div"(map(t->t.widget, pokes))
 streakswidget = dom"div"(map(t->t.widget, streaks))
-
+P = Observable{Any}(OrderedDict("Behavior" => pokeswidget, "Traces" => button("bho")))
+S = Observable{Any}(OrderedDict("Behavior" => streakswidget, "Traces" => button("bho")))
+PL = map(tabulator,P)
+SL = map(tabulator,S)
 filestuff = hbox(filepath)
-main = Observable{Any}(OrderedDict("Loading"=>filestuff, "Pokes"=> pokeswidget, "Streaks" => streakswidget))
+#main = Observable{Any}(OrderedDict("Loading"=>filestuff, "Pokes"=> pokeswidget, "Streaks" => streakswidget))
+main = Observable{Any}(OrderedDict("Loading"=>filestuff, "Pokes"=> PL, "Streaks" => SL))
 
 # main = Observable{Any}(OrderedDict())
 # main[] = map(merge,file_dict,observe(pokes_dict)[],observe(streaks_dict)[])

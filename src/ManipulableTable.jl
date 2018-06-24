@@ -22,11 +22,11 @@ function ManipulableTable(data::Array{Flipping.PhotometryStructure},bhv_type::Sy
     Button = button("Plot");
     plotter = observe(Button)
     subdata = map(t -> filterdf(data,categorical,continouos,bhv_type),plotter)
-    plotdata = map(t->convertin_DB(subdata[],bhv_type),subdata)
+    plotdata = map(t->Flipping.convertin_DB(subdata[],bhv_type),subdata)
     splitby = checkboxes(names,label = "Split By")
     compute_error = dropdown(vcat(["none","bootstrap","all"],names),label = "Compute_error")
     x_axis = dropdown(names,label = "X axis")
-    y_axis = dropdown(names,label = "Y axis")
+    y_axis = dropdown(vcat(["density", "cumulative"],names),label = "Y axis")
     axis_type = dropdown(x_type_dict,label = "X variable Type")
     smoother = slider(1:100,label = "Smoother")
     plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
@@ -49,7 +49,7 @@ function filterdf(df::Array{PhotometryStructure}, categorical::Array{Categorical
             setfield!(subdata[i],field,session)
         end
     end
-    active_con = continouos[find(isselected(categorical))]
+    active_con = continouos[find(isselected(continouos))]
     for c in active_con
         for i = 1:size(subdata,1)
             session = getfield(subdata[i], field)
@@ -60,16 +60,3 @@ function filterdf(df::Array{PhotometryStructure}, categorical::Array{Categorical
     end
     return subdata
 end
-
-
-
-makeplot(x, y, df, cat, cont) =
-    makeplot(x, y, filter(df, cat, cont))
-
-function makeplot(x, y, df)
-    xcol, ycol = # extract columns columns(df[], (Symbol(x[]), Symbol(y[])))
-    plot(xcol, ycol)
-end
-
-
-# autocomplete(["ire","oro"])

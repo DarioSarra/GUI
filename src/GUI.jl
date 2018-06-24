@@ -26,8 +26,17 @@ include(joinpath("layout","overall_layout.jl"))
 
 
 ##
-df = pokes[];
-observe(df.compute_error)[]
+session = data[][1].pokes
+session[session[:Streak_n].==4,:In][6]
+
+##
+methods(Analysis)
+Analysis()
+a = Analysis(streaks[]);
+a
+##
+df = streaks[];
+typeof(observe(df.plotdata)[])
 ##
 typeof(data[])
 unique(data[],:Gen,:pokes)

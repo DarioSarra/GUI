@@ -11,5 +11,5 @@ const plot_dict = OrderedDict(
 const x_type_dict = OrderedDict(
     "auto" => :auto,
     "discrete" => :discrete,
-    "contonouos" => :continouos,
+    "continouos" => :continouos,
 )
