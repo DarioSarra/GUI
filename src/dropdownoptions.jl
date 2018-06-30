@@ -13,3 +13,9 @@ const x_type_dict = OrderedDict(
     "discrete" => :discrete,
     "continouos" => :continouos,
 )
+
+const tracetype_dict = OrderedDict(
+    "Raw" => "Raw",
+    "Normalised" => "Normalised",
+    "GLM" => "GLM"
+    )

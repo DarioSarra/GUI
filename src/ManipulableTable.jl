@@ -1,6 +1,6 @@
 mutable struct ManipulableTable
     bhv_type::Symbol
-    subdata::Array{Flipping.PhotometryStructure}
+    subdata#::Array{Flipping.PhotometryStructure}
     categorical::AbstractArray{CategoricalVariable}
     continouos::AbstractArray{ContinuousVariable}
     plotdata
@@ -22,7 +22,10 @@ function ManipulableTable(data::Array{Flipping.PhotometryStructure},bhv_type::Sy
     Button = button("Plot");
     plotter = observe(Button)
     subdata = map(t -> filterdf(data,categorical,continouos,bhv_type),plotter)
-    plotdata = map(t->Flipping.convertin_DB(subdata[],bhv_type),subdata)
+    #subdata = Observable{Any}(deepcopy(data))
+    #subdata = Observable{Any}(Array{Flipping.PhotometryStructure})
+    #map!(t -> filterdf(data,categorical,continouos,bhv_type),subdata,plotter)
+    plotdata = map(t->convertin_DB(subdata[],bhv_type),subdata)
     splitby = checkboxes(names,label = "Split By")
     compute_error = dropdown(vcat(["none","bootstrap","all"],names),label = "Compute_error")
     x_axis = dropdown(names,label = "X axis")
@@ -40,9 +43,10 @@ end
 
 
 function filterdf(df::Array{PhotometryStructure}, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable},field)
+    #filter for categorical and continouos variable options
     subdata = deepcopy(df)
     active_cat = categorical[find(isselected(categorical))]
-    for c in active_cat
+    for c in active_cat # go through every active variable
         for i = 1:size(subdata,1)
             session = getfield(subdata[i], field)
             session = session[in.(session[c.name],(selecteditems(c),)),:]

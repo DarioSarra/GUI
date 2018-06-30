@@ -46,6 +46,32 @@ function get_error(df::ManipulableTable)
         return(:across, Symbol(inputvalue))
     end
 end
+function Analysis(df::ManipulableTrace)
+    data = observe(df.plotdata)[]#indexed table
+    splitby = Tuple(observe(df.splitby)[]) #tupla of symbols
+    compute_error = get_error(df) #tupla (:none, ) (:across, :MouseID) (:bootstrap, 100) (:across, :all)
+    x = Symbol(observe(df.x_axis)[])
+    y = Symbol(observe(df.y_axis)[])
+    axis_type = Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
+    smoother = observe(df.smoother)[]
+    package = GroupedError()
+    plot = plot_dict[observe(df.plot_type)[]] #function plot, groupedbar,
+    plot_kwargs = []
+    Analysis(data = data, splitby = splitby, compute_error = compute_error,
+    x=x,y=y, axis_type = axis_type,smoother=smoother,package=package,
+    plot=plot,plot_kwargs = plot_kwargs, xfunc = mean, yfunc = mean)
+end
+
+function get_error(df::ManipulableTrace)
+    inputvalue = observe(df.compute_error)[]
+    if inputvalue == "none"
+        return nothing
+    elseif inputvalue == "bootstrap"
+        return (:bootstrap,observe(df.smoother)[])
+    else
+        return(:across, Symbol(inputvalue))
+    end
+end
 
 struct StatPlotsRecipe; end
 struct GroupedError; end
