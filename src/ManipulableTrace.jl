@@ -37,7 +37,7 @@ function ManipulableTrace(df::ManipulableTable)
     norm_window = ContinuousVariable(:NormalisationPeriod,-1.5,-0.5) #use function selecteditems to retrieve values
     plot_window = ContinuousVariable(:VisualisationPeriod,-2,2) #use function selecteditems to retrieve values
     plt = Observable{Any}(plot(rand(10)))
-    subdata = map(t->filter_norm_window(data[],norm_window,rate,bhv_type),plotter)
+    subdata = map(t->filter_norm_window(data[],norm_window,rate),plotter)
     #plotdata
     widget = hbox(vbox(Button,compute_error,rate),splitby,
     vbox(hbox(norm_window.widget,plot_window.widget),
@@ -164,8 +164,28 @@ function extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, tra
     provisory = convert(Array{typeof(provisory[1])},provisory)
 end
 
+function filter_norm_window(df::PhotometryStructure,Norm_window::ContinuousVariable, rate)
+    data  = df.streaks
+    fps = observe(rate)[]
+    start = observe(Norm_window.start)[]
+    sel = Array{Bool}(0) #boolean array to filter streaks
+    slen = []# Array of valid streaks to filter corrisponding pokes
+    for i = 2:size(data,1)
+        v = data[i,:In]/fps + start > data[i-1,:Out]/fps
+        push!(sel,v)
+        if v
+            push!(slen,i)
+        end
+    end
+    unshift!(sel,true)
+    df.streaks = df.streaks[sel,:]
+    for i in slen
+        pokes_rows = find(df.pokes[:Streak_n].==i)
+        deleterows!(df.pokes,pokes_rows)
+    end
+end
 
-function filter_norm_window(df,Norm_window::ContinuousVariable, rate,bhv_type)
+function normalise_DeltaF0(df,Norm_window::ContinuousVariable, rate,bhv_type)
     start,stop = selecteditems(Norm_window)
     pace = observe(rate)[]
     start = Int64(start*pace)
