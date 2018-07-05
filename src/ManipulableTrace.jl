@@ -176,9 +176,7 @@ function filter_norm_window(df,Norm_window::ContinuousVariable, rate,bhv_type)
         f0 = mean(df[idx][start:stop])
         ar = df[idx].parent
         ar = (ar-f0)/f0
-
         sh = df[idx].shifts[1]
-
         x = ShiftedArray(ar, sh, default = NaN)
         typeof(x)
         push!(norm,x)
