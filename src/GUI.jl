@@ -27,12 +27,24 @@ include(joinpath("layout","overall_layout.jl"))
 
 ##
 df = pokes_traces[];
-cat, con = distinguish(df.subdata[],:pokes)
-Symbol.(observe(df.splitby)[])
-selecteditems(df.plot_window)
-observe(df.rate)[]
-observe(df.splitby)[]
+df.norm_window
+rate = observe(df.rate)[]
+e = extract_traces(df.subdata[][1],:pokes,:DRN_sig,df.plot_window,df.rate)
+size(e,1)
+mean(e[1][-100:100])
+start,stop = selecteditems(df.plot_window)
+rate = observe(df.rate)[]
+inds = start*rate:stop*rate
+typeof(e)
+c = reduce_vec(mean,e,inds,default = NaN)
+typeof(f)
+f = filter_norm_window(e,df.norm_window, df.rate)
+plot(inds,c)
+f_mean = reduce_vec(mean,f,inds,default = NaN)
+plot!(inds,f)
 ##
+start,stop = selecteditems(df.plot_window)
+typeof(start)
 data[][1].pokes
 pokes[].subdata[1].pokes
 prova = convertin_DB(data[],:pokes)

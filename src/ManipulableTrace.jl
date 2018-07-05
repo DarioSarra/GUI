@@ -37,7 +37,7 @@ function ManipulableTrace(df::ManipulableTable)
     norm_window = ContinuousVariable(:NormalisationPeriod,-1.5,-0.5) #use function selecteditems to retrieve values
     plot_window = ContinuousVariable(:VisualisationPeriod,-2,2) #use function selecteditems to retrieve values
     plt = Observable{Any}(plot(rand(10)))
-    subdata = map(t->filter_norm_window(data[],norm_window,rate),plotter)
+    subdata = map(t->filter_norm_window(data[],norm_window,rate,bhv_type),plotter)
     #plotdata
     widget = hbox(vbox(Button,compute_error,rate),splitby,
     vbox(hbox(norm_window.widget,plot_window.widget),
@@ -126,7 +126,7 @@ function convert_traces(df::DataFrame,splitby,sa::Array{ShiftedArray},VisW)
     coll_range = VisW[1]:VisW[2]
     provisory = DataFrame()
     if size(df,1) != size(sa,1)
-        error("non matching data between bhw and collected shifted array")
+        error("non matching data between bhv and collected shifted array")
     end
     for i = 1:size(df,1)
         trial = sar[i][coll_range]
@@ -145,17 +145,17 @@ function convert_traces(df::DataFrame,splitby,sa::Array{ShiftedArray},VisW)
 end
 
 function extract_traces(data::AbstractDataFrame, trace::Symbol, allignment,VisW,rate)
-    start = allignment+(VisW[1]*rate)
-    stop = allignment+(VisW[2]*rate)
+    start,stop = selecteditems(VisW)
+    pace = observe(df.rate)[]
+    start = allignment+(start*pace)
+    stop = allignment+(stop*pace)
     collecting = start:stop
-    #println("start = $(start), allignment = $(allignment), stop = $(stop) ")
-    trial = data[collecting,trace]
-    Shiftedtrial = ShiftedArray(trial, - allignment, default = NaN)
+    Shiftedtrial = ShiftedArray(data[trace], - allignment, default = NaN)
 end
 
-function extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, trace::Symbol,VisW,rate)
+function extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, trace::Symbol,VisW::ContinuousVariable,rate)
     bhv = getfield(data,bhv_type)
-    provisory = Array{Any}(0)
+    provisory = Array{ShiftedArray}(0)
     for i = 1:size(bhv,1)
         allignment = bhv[i,:In]
         ongoing = extract_traces(data.traces,trace,allignment,VisW,rate)
@@ -165,25 +165,25 @@ function extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, tra
 end
 
 
-function filter_norm_window(df::PhotometryStructure,Norm_window::ContinuousVariable, rate)
-    data  = df.streaks
-    fps = observe(rate)[]
-    start = observe(Norm_window.start)[]
-    sel = Array{Bool}(0) #boolean array to filter streaks
-    slen = []# Array of valid streaks to filter corrisponding pokes
-    for i = 2:size(data,1)
-        v = data[i,:In]/fps + start > data[i-1,:Out]/fps
-        push!(sel,v)
-        if v
-            push!(slen,i)
-        end
+function filter_norm_window(df,Norm_window::ContinuousVariable, rate,bhv_type)
+    start,stop = selecteditems(Norm_window)
+    pace = observe(rate)[]
+    start = Int64(start*pace)
+    stop = Int64(stop*pace)
+    corr_range = start:stop
+    norm = Array{ShiftedArray}(0)
+    for idx =1:size(df.bhv_type,1)
+        f0 = mean(df[idx][start:stop])
+        ar = df[idx].parent
+        ar = (ar-f0)/f0
+
+        sh = df[idx].shifts[1]
+
+        x = ShiftedArray(ar, sh, default = NaN)
+        typeof(x)
+        push!(norm,x)
     end
-    unshift!(sel,true)
-    df.streaks = df.streaks[sel,:]
-    for i in slen
-        pokes_rows = find(df.pokes[:Streak_n].==i)
-        deleterows!(df.pokes,pokes_rows)
-    end
+    return norm
 end
 
 
