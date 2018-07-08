@@ -144,6 +144,44 @@ function convert_traces(df::DataFrame,splitby,sa::Array{ShiftedArray},VisW)
     return provisory
 end
 
+
+
+function filter_norm_window(df::PhotometryStructure,Norm_window::ContinuousVariable, rate)
+    data  = df.streaks
+    fps = observe(rate)[]
+    start,stop = selecteditems(Norm_window)
+    sel = Array{Bool}(0) #boolean array to filter streaks
+    slen = []# Array of valid streaks to filter corrisponding pokes
+    for i = 2:size(data,1)
+        v = data[i,:In]/fps + start > data[i-1,:Out]/fps
+        push!(sel,v)
+        if v
+            push!(slen,i)
+        end
+    end
+    unshift!(sel,true)
+    df.streaks = df.streaks[sel,:]
+    for i in slen
+        pokes_rows = find(df.pokes[:Streak_n].==i)
+        df.pokes = df.pokes[pokes_rows,:]
+        #deleterows!(df.pokes,pokes_rows)
+    end
+end
+
+
+function filter_norm_window(df::Array{PhotometryStructure},Norm_window::ContinuousVariable,rate)
+    subdata = deepcopy(df)
+    for i = 1:size(subdata,1)
+        if isempty(subdata[i].streaks)
+            println("empty")
+            continue
+        else
+            filter_norm_window(subdata[i], Norm_window, rate)
+        end
+    end
+    return subdata
+end
+
 function extract_traces(data::AbstractDataFrame, trace::Symbol, allignment,VisW,rate)
     start,stop = selecteditems(VisW)
     pace = observe(df.rate)[]
@@ -164,56 +202,22 @@ function extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, tra
     provisory = convert(Array{typeof(provisory[1])},provisory)
 end
 
-function filter_norm_window(df::PhotometryStructure,Norm_window::ContinuousVariable, rate)
-    data  = df.streaks
-    fps = observe(rate)[]
-    start = observe(Norm_window.start)[]
-    sel = Array{Bool}(0) #boolean array to filter streaks
-    slen = []# Array of valid streaks to filter corrisponding pokes
-    for i = 2:size(data,1)
-        v = data[i,:In]/fps + start > data[i-1,:Out]/fps
-        push!(sel,v)
-        if v
-            push!(slen,i)
-        end
-    end
-    unshift!(sel,true)
-    df.streaks = df.streaks[sel,:]
-    for i in slen
-        pokes_rows = find(df.pokes[:Streak_n].==i)
-        deleterows!(df.pokes,pokes_rows)
-    end
-end
-
-function normalise_DeltaF0(df,Norm_window::ContinuousVariable, rate,bhv_type)
+function normalise_DeltaF0(df,Norm_window::ContinuousVariable, rate)
     start,stop = selecteditems(Norm_window)
     pace = observe(rate)[]
     start = Int64(start*pace)
     stop = Int64(stop*pace)
     corr_range = start:stop
-    norm = Array{ShiftedArray}(0)
-    for idx =1:size(df.bhv_type,1)
+    provisory = Array{ShiftedArray}(0)
+    for idx =1:size(df,1)
         f0 = mean(df[idx][start:stop])
         ar = df[idx].parent
         ar = (ar-f0)/f0
         sh = df[idx].shifts[1]
-        x = ShiftedArray(ar, sh, default = NaN)
-        typeof(x)
-        push!(norm,x)
-    end
-    return norm
-end
+        ongoing = ShiftedArray(ar, sh, default = NaN)
 
-
-function filter_norm_window(df::Array{PhotometryStructure},Norm_window::ContinuousVariable,rate)
-    subdata = deepcopy(df)
-    for i = 1:size(subdata,1)
-        if isempty(subdata[i].streaks)
-            println("empty")
-            continue
-        else
-            filter_norm_window(subdata[i], Norm_window, rate)
-        end
+        push!(provisory,ongoing)
     end
-    return subdata
+    provisory = convert(Array{typeof(provisory[1])},provisory)
+    return provisory
 end

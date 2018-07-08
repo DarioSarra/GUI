@@ -27,9 +27,10 @@ include(joinpath("layout","overall_layout.jl"))
 
 ##
 df = pokes_traces[];
+
 df.norm_window
 rate = observe(df.rate)[]
-e = extract_traces(df.subdata[][1],:pokes,:DRN_sig,df.plot_window,df.rate)
+e = extract_traces(df.data[][1],:pokes,:DRN_sig,df.plot_window,df.rate)
 size(e,1)
 mean(e[1][-100:100])
 start,stop = selecteditems(df.plot_window)
@@ -38,10 +39,10 @@ inds = start*rate:stop*rate
 typeof(e)
 c = reduce_vec(mean,e,inds,default = NaN)
 typeof(f)
-f = filter_norm_window(e,df.norm_window, df.rate)
+f = normalise_DeltaF0(e,df.norm_window, df.rate)
 plot(inds,c)
 f_mean = reduce_vec(mean,f,inds,default = NaN)
-plot!(inds,f)
+plot(inds,f_mean)
 ##
 start,stop = selecteditems(df.plot_window)
 typeof(start)
