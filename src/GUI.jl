@@ -26,6 +26,7 @@ include(joinpath("layout","overall_layout.jl"))
 
 
 ##
+
 df = pokes_traces[];
 
 df.norm_window
@@ -42,6 +43,9 @@ typeof(f)
 f = normalise_DeltaF0(e,df.norm_window, df.rate)
 plot(inds,c)
 f_mean = reduce_vec(mean,f,inds,default = NaN)
+plot(inds,f_mean)
+n = Normalise_GLM(df.data[][1],:pokes, :DRN_sig,df.plot_window,df.norm_window,df.rate)
+n_mean = reduce_vec(mean,n,inds,default = NaN)
 plot(inds,f_mean)
 ##
 start,stop = selecteditems(df.plot_window)

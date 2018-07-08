@@ -202,6 +202,11 @@ function extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, tra
     provisory = convert(Array{typeof(provisory[1])},provisory)
 end
 
+function normalise_DeltaF0(data::Flipping.PhotometryStructure,bhv_type::Symbol, trace::Symbol,Norm_window::ContinuousVariable,VisW::ContinuousVariable,rate)
+    df = extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, trace::Symbol,VisW::ContinuousVariable,rate)
+    normalise = normalise_DeltaF0(df,Norm_window::ContinuousVariable, rate)
+end
+
 function normalise_DeltaF0(df,Norm_window::ContinuousVariable, rate)
     start,stop = selecteditems(Norm_window)
     pace = observe(rate)[]
@@ -220,4 +225,46 @@ function normalise_DeltaF0(df,Norm_window::ContinuousVariable, rate)
     end
     provisory = convert(Array{typeof(provisory[1])},provisory)
     return provisory
+end
+
+"""
+`Normalise_GLM`
+"""
+
+function  Normalise_GLM(data::Flipping.PhotometryStructure,bhv_type::Symbol, trace::Symbol,VisW::ContinuousVariable,Norm_window::ContinuousVariable,rate)
+    shift_raw_sig = extract_traces(data,bhv_type,trace,df.plot_window,rate)
+    trace_sig_name = String(trace)
+    trace_ref_name = replace(trace_sig_name,"sig","ref")
+    trace_ref = Symbol(trace_ref_name)
+    shift_raw_ref = extract_traces(data,bhv_type,trace_ref,df.plot_window,rate)
+    shift_norm_sig = normalise_DeltaF0(shift_raw_sig,Norm_window::ContinuousVariable, rate)
+    shift_norm_ref = normalise_DeltaF0(shift_raw_ref,Norm_window::ContinuousVariable, rate)
+    Reg_norm = Normalise_GLM(shift_norm_sig,shift_norm_ref)
+end
+
+
+function  Normalise_GLM(shifted_sig,shifted_ref)
+    prov = DataFrame()
+    sig_vector = Union{Float64,Missing}[]
+    ref_vector = Union{Float64,Missing}[]
+    for i = 1:size(shifted_sig,1)
+        append!(sig_vector, shifted_sig[i].parent)
+        append!(ref_vector, shifted_ref[i].parent)
+    end
+    prov = DataFrame(Sig=sig_vector,Ref = ref_vector)
+    filter = .!ismissing.(sig_vector)
+    OLS = lm(@formula(Sig ~ 0 + Ref), prov[filter,:])
+    coefficient = coef(OLS)
+    prov = DataFrame(Sig=sig_vector,Ref = ref_vector)
+    filter = .!ismissing.(sig_vector)
+    OLS = lm(@formula(Sig ~ 0 + Ref), prov[filter,:])
+    coefficient = coef(OLS)
+    Reg_norm =  Array{Any}(size(shifted_sig,1))
+    for i in 1:size(shifted_sig,1)
+        value = @.(shifted_sig[i].parent-shifted_ref[i].parent*coefficient)
+        shift = shifted_sig[i].shifts[1]
+        Reg_norm[i] = ShiftedArray(value,shift)
+    end
+    Reg_norm = convert(Array{typeof(Reg_norm[1])},Reg_norm)
+    return Reg_norm
 end
