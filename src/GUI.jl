@@ -28,10 +28,31 @@ include(joinpath("layout","overall_layout.jl"))
 ##
 
 df = pokes_traces[];
-
+df.data[]
+## filtering Norm wind cancels all data
+len_s = []
+len_p = []
+for sess = 1:118
+    p = size(df.data[][sess].pokes,1) > size(df.subdata[][sess].pokes,1)
+    s = size(df.data[][sess].streaks,1)>size(df.subdata[][sess].streaks,1)
+    push!(len_p,p)
+    push!(len_s,s)
+    for trial = 1:size(df.data[][sess].streaks,1)-1
+        d = df.data[][sess].streaks
+        if df.data[][sess].streaks[trial,:Travel_duration]<1
+            #diff = d[trial+1,:In] -1.5 > d[trial,:Out]
+            println(sess, " ",trial," ",diff)
+        end
+    end
+end
+names(df.data[][sess].streaks)
+##
+find(len_s)
+find(len_p)
+plot(df.subdata[][1].streaks[:Travel_duration])
 df.norm_window
 rate = observe(df.rate)[]
-e = extract_traces(df.data[][1],:pokes,:DRN_sig,df.plot_window,df.rate)
+e = extract_traces(df.subdata[][1],:pokes,:DRN_sig,df.plot_window,df.rate)
 size(e,1)
 mean(e[1][-100:100])
 start,stop = selecteditems(df.plot_window)

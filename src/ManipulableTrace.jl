@@ -153,18 +153,21 @@ function filter_norm_window(df::PhotometryStructure,Norm_window::ContinuousVaria
     sel = Array{Bool}(0) #boolean array to filter streaks
     slen = []# Array of valid streaks to filter corrisponding pokes
     for i = 2:size(data,1)
-        v = data[i,:In]/fps + start > data[i-1,:Out]/fps
+        v = data[i,:In]/fps + start >= data[i-1,:Out]/fps
         push!(sel,v)
-        if v
+        if !v
+        #= if there isn't enought time push the streak number
+        to remove the pokes in that streak=#
             push!(slen,i)
         end
     end
+    #=sel has one value less than streaks num,
+    we assume first streak to have enough time before start=#
     unshift!(sel,true)
     df.streaks = df.streaks[sel,:]
     for i in slen
         pokes_rows = find(df.pokes[:Streak_n].==i)
-        df.pokes = df.pokes[pokes_rows,:]
-        #deleterows!(df.pokes,pokes_rows)
+        deleterows!(df.pokes,pokes_rows)
     end
 end
 
