@@ -96,9 +96,7 @@ function process_traces(df::ManipulableTrace)
     #once identified cat and con for con apply custom bin function
     for d in data
         ongoing = extract_traces(d,bhv_type,trace,VisW,rate)
-
     end
-
     result = DataFrame()
     for i = 1:size(sa,1)
         if tracetype == "Raw"
@@ -145,7 +143,6 @@ function convert_traces(df::DataFrame,splitby,sa::Array{ShiftedArray},VisW)
 end
 
 
-
 function filter_norm_window(df::PhotometryStructure,Norm_window::ContinuousVariable, rate)
     data  = df.streaks
     fps = observe(rate)[]
@@ -183,6 +180,25 @@ function filter_norm_window(df::Array{PhotometryStructure},Norm_window::Continuo
         end
     end
     return subdata
+end
+
+function adjust_F0(df::ManipulableTrace)
+    start,stop = selecteditems(df.norm_window)
+    rate = observe(df.rate)
+    for t =1:size(df.subdata[],1)
+        adjust_F0(df.subdata[][t],start,stop,rate)
+    end
+end
+
+function adjust_F0(df::PhotometryStructure,start::Float64, stop::Float64,rate)
+    println(size(df.traces))
+    Cols = df.traces[].names
+    Columns = string.(Cols);
+    traces = Columns[contains.(Columns,"_sig").|contains.(Columns,"_ref")]
+    for trace in traces
+        for trial = 1 size(df.straks)
+        end
+    end
 end
 
 function extract_traces(data::AbstractDataFrame, trace::Symbol, allignment,VisW,rate)

@@ -1,3 +1,18 @@
+function distinguish(data::IndexedTables.NextTable)
+    print("YEP")
+    categorical_vars = []
+    continuous_vars = []
+    for x in colnames(data)
+        if x == :PokeSequence
+            continue
+        elseif !(eltype(select(data,x)) <: Real) || (eltype(select(data,x)) == Bool)
+            push!(categorical_vars,x)
+        else
+            push!(continuous_vars,x)
+        end
+    end
+    return categorical_vars, continuous_vars
+end
 
 function distinguish(data::Array{PhotometryStructure,1},field::Symbol)
     println("processing variables")
