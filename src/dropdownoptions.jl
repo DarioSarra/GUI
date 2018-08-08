@@ -1,5 +1,5 @@
 const plot_dict = OrderedDict(
-    "lineplot" => plot,
+    "line plot" => plot,
     "scatter" => scatter,
     "bar" => groupedbar,
     #"boxplot" => boxplot,

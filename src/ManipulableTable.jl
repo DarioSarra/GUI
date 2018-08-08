@@ -19,7 +19,7 @@ end
 function ManipulableTable(data::Array{Flipping.PhotometryStructure},bhv_type::Symbol)
     categorical, continouos, names = buildvars(data,bhv_type)
     plt = Observable{Any}(plot(rand(10)))
-    Button = button("Plot");
+    Button = button("Plot")
     plotter = observe(Button)
     subdata = map(t -> filterdf(data,categorical,continouos,bhv_type),plotter)
     #subdata = Observable{Any}(deepcopy(data))

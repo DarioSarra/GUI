@@ -1,5 +1,4 @@
 function distinguish(data::IndexedTables.NextTable)
-    print("YEP")
     categorical_vars = []
     continuous_vars = []
     for x in colnames(data)
@@ -15,7 +14,6 @@ function distinguish(data::IndexedTables.NextTable)
 end
 
 function distinguish(data::Array{PhotometryStructure,1},field::Symbol)
-    println("processing variables")
     set = getfield(data[1],field)
     categorical_vars = []
     continuous_vars = []

@@ -133,7 +133,7 @@ function convert_traces(df::DataFrame,splitby,sa::Array{ShiftedArray},VisW)
             ongoing[col] = df[i,col]
         end
         if isempty(provisory)
-            provisory = ongoning
+            provisory = ongoing
         else
             append!(provisory,ongoing)
         end
@@ -201,14 +201,17 @@ function adjust_F0(df::PhotometryStructure,start::Float64, stop::Float64,rate)
     end
 end
 
-function extract_traces(data::AbstractDataFrame, trace::Symbol, allignment,VisW,rate)
-    start,stop = selecteditems(VisW)
-    pace = observe(df.rate)[]
-    start = allignment+(start*pace)
-    stop = allignment+(stop*pace)
-    collecting = start:stop
-    Shiftedtrial = ShiftedArray(data[trace], - allignment, default = NaN)
+
+function extract_rawtraces(bhv_data::AbstractDataFrame, traces_data::AbstractDataFrame)
+    ongoing = JuliaDB.table(bhv_data)
+    for name in names(traces_data)
+        provisory = [ShiftedArray(traces_data[name], -i) for i in bhv_data[:In]]
+        ongoing = JuliaDBMeta.@with ongoing setcol(_, name, provisory)
+    end
+    return ongoing
 end
+
+
 
 function extract_traces(data::Flipping.PhotometryStructure,bhv_type::Symbol, trace::Symbol,VisW::ContinuousVariable,rate)
     bhv = getfield(data,bhv_type)
