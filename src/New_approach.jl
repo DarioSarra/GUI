@@ -13,11 +13,9 @@ w = Window()
 body!(w, df.widget)
 
 ##
+unique(select(dfA.data,:indici))
 dfA = Analysis(df)
-selection = tuplejoin([dfA.y],dfA.splitby)
-dataset = select(dfA.data,selection)
-interval = Int64(dfA.xfunc[1]*dfA.yfunc):Int64(dfA.xfunc[2]*dfA.yfunc)
-x = dfA.x[1]*dfA.yfunc:dfA.x[2]*dfA.yfunc
+
 ##
 t = @apply dataset begin
     @transform {Normalise = normalise(cols(dfA.y),interval,x)}
