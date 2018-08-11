@@ -12,6 +12,11 @@ body!(w, df.widget)
 bA = Analysis(b)
 dfA = Analysis(df)
 ##
+process(bA)
+##
+plot_closure(args...; kwargs...) = bA.plot(args...; kwargs..., a.plot_kwargs...)
+(bA.plot == plot) ? @plot(s, plot_closure(), :ribbon) : @plot(s, plot_closure())
+##
 a = bA
 a.y
 s = GroupedErrors.ColumnSelector(a.data)
@@ -19,42 +24,51 @@ s = GroupedErrors._splitby(s, Symbol[splitby(a)...])
 s = compute_error(s, a.compute_error)
 maybe_nbins = isbinned(a) ? (round(Int64, (120-a.smoother)/2),) : ()
 s = GroupedErrors._x(s, a.x, a.axis_type, maybe_nbins...)
+s.x
+s.x = 1:100
 ##
-isdefined(column(a.data, a.y))
-column(a.data, a.y)[1] isa ShiftedArray
-column(a.data, :Reward)
+s2 = GroupedErrors.replace_selector(s, 1:10, :x)
 ##
-bP = process(bA)
-bP
+s = GroupedErrors._x(s, a.x, a.axis_type, maybe_nbins...)
 ##
-selecteditems(df.plot_window)[1]:selecteditems(df.plot_window)[2]
--2:2
-##
-x = Symbol.(observe(df.splitby_cont)[])
-if !isempty(x)
-    for i = 1:size(x,1)
-        bin = observe(b.bins)[]
-        data = JuliaDBMeta.@with data setcol(_, x[i], CategoricalArrays.cut(cols(x[i]),bin))
-    end
+function _x(s::AbstractSelector, f, args...)
+    s2 = replace_selector(s, f, :x)
+    kws = [:axis_type, :nbins]
+	if args == () || isa(args[1], Symbol)
+	    for (ind, val) in enumerate(args)
+	        s2.kw[kws[ind]] = val
+	    end
+	else
+		s2.kw[:xreduce] = functionize(args[1])
+	end
+    return s2
 end
 ##
-splitBy = Tuple(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[]))
-splitBy = Symbol.(splitBy)
-pace = observe(df.rate)[]
-fib = observe(df.fibers)[]
-start = selecteditems(df.plot_window)[1]*pace
-stop = selecteditems(df.plot_window)[2]*pace
-window = start:stop
-letsee = @apply df.plotdata[] splitBy begin
-    JuliaDBMeta.@map collect(cols(fib)[window])
+function replace_selector(s::S, f, sym::Symbol) where {S<:AbstractSelector}
+    fields = fieldnames(s)
+    new_fields = Tuple(field == sym ? f : getfield(s, field) for field in fields)
+	(S <: Selector) ? Selector(new_fields...) : ColumnSelector(new_fields...)
 end
 ##
-select(df.plotdata[],:Reward)
+function replace_selector(s::S, f::UnitRange{Int64}, sym::Symbol) where {S<:AbstractSelector}
+    fields = fieldnames(s)
+    new_fields = Tuple(field == sym ? f : getfield(s, field) for field in fields)
+	(S <: Selector) ? Selector(new_fields...) : ColumnSelector(new_fields...)
+end
 
 ##
-JuliaDBMeta.@map df.plotdata[] collect(cols(fib)[window])
-##
-dfs = df.plotdata[]
+function _t(s, f, args...)
+    s.x = f
+    kws = [:axis_type, :nbins]
+	if args == () || isa(args[1], Symbol)
+	    for (ind, val) in enumerate(args)
+	        s2.kw[kws[ind]] = val
+	    end
+	else
+		s.kw[:xreduce] = functionize(args[1])
+	end
+    return s
+end
 ##
 @> dfs begin
     @splitby _.Reward

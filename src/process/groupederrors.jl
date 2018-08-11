@@ -27,18 +27,6 @@ isbinned(a) = a.axis_type == :binned
 
 iscontinuous(a) = !ispointbypoint(a) && !isdiscrete(a) && !isbinned(a)
 
-function _t(s, f, args...)
-    s.x = f
-    kws = [:axis_type, :nbins]
-	if args == () || isa(args[1], Symbol)
-	    for (ind, val) in enumerate(args)
-	        s2.kw[kws[ind]] = val
-	    end
-	else
-		s.kw[:xreduce] = functionize(args[1])
-	end
-    return s
-end
 
 function process(::GroupedError, a::Analysis)
     s = GroupedErrors.ColumnSelector(a.data)

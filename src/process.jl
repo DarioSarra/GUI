@@ -76,11 +76,11 @@ end
 
 function Analysis(df::Mutable_bhvs)
     data = deepcopy(df.bhv_data)#indexed table
-    x = Symbol.(observe(df.splitby_cont)[])
-    if !isempty(x)
-        for i = 1:size(x,1)
+    s = Symbol.(observe(df.splitby_cont)[])
+    if !isempty(s)
+        for i = 1:size(s,1)
             bin = observe(b.bins)[]
-            data = JuliaDBMeta.@with data setcol(_, x[i], CategoricalArrays.cut(cols(x[i]),bin))
+            data = JuliaDBMeta.@with data setcol(_, s[i], CategoricalArrays.cut(cols(s[i]),bin))
         end
     end
     splitby = Tuple(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[])) #tupla of symbols
@@ -110,17 +110,20 @@ end
 
 function Analysis(df::Mutable_traces)
     data = deepcopy(df.plotdata[])#indexed table
-    x = Symbol.(observe(df.splitby_cont)[])
-    if !isempty(x)
-        for i = 1:size(x,1)
+    s = Symbol.(observe(df.splitby_cont)[])
+    if !isempty(s)
+        for i = 1:size(s,1)
             bin = observe(b.bins)[]
-            data = JuliaDBMeta.@with data setcol(_, x[i], CategoricalArrays.cut(cols(x[i]),bin))
+            data = JuliaDBMeta.@with data setcol(_, s[i], CategoricalArrays.cut(cols(s[i]),bin))
         end
     end
-    splitby = Tuple(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[])) #tupla of symbols
+    splitby = Tuple(Symbol.(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[]))) #tupla of symbols
     compute_error = get_error(df) #tupla (:none, ) (:across, :MouseID) (:bootstrap, 100) (:across, :all)
-    x = selecteditems(df.plot_window)[1]:selecteditems(df.plot_window)[2]
+    x = selecteditems(df.plot_window)#selecteditems(df.plot_window)[1]:selecteditems(df.plot_window)[2]
+    xfunc = selecteditems(df.norm_window)
     y = Symbol(observe(df.fibers)[])
+    yfunc = observe(df.rate)[]
+    zfunc = Symbol(observe(df.tracetype)[])
     axis_type = :discrete#Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
     smoother = observe(df.smoother)[]
     package = GroupedError()
@@ -128,7 +131,7 @@ function Analysis(df::Mutable_traces)
     plot_kwargs = []
     Analysis(data = data, splitby = splitby, compute_error = compute_error,
     x=x,y=y, axis_type = axis_type,smoother=smoother,package=package,
-    plot=plot,plot_kwargs = plot_kwargs, xfunc = mean, yfunc = mean)
+    plot=plot,plot_kwargs = plot_kwargs, xfunc = xfunc, yfunc = yfunc,zfunc= zfunc)
 end
 
 function get_error(df::Mutable_traces)

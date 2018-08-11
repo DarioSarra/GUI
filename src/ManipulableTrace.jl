@@ -173,7 +173,6 @@ function filter_norm_window(df::Array{PhotometryStructure},Norm_window::Continuo
     subdata = deepcopy(df)
     for i = 1:size(subdata,1)
         if isempty(subdata[i].streaks)
-            println("empty")
             continue
         else
             filter_norm_window(subdata[i], Norm_window, rate)
@@ -202,13 +201,13 @@ function adjust_F0(df::PhotometryStructure,start::Float64, stop::Float64,rate)
 end
 
 
-function extract_rawtraces(bhv_data::AbstractDataFrame, traces_data::AbstractDataFrame)
-    ongoing = JuliaDB.table(bhv_data)
-    for name in names(traces_data)
-        provisory = [ShiftedArray(traces_data[name], -i) for i in bhv_data[:In]]
-        ongoing = JuliaDBMeta.@with ongoing setcol(_, name, provisory)
-    end
-    return ongoing
+function extract_traces(data::AbstractDataFrame, trace::Symbol, allignment,VisW,rate)
+    start,stop = selecteditems(VisW)
+    pace = observe(df.rate)[]
+    start = allignment+(start*pace)
+    stop = allignment+(stop*pace)
+    collecting = start:stop
+    Shiftedtrial = ShiftedArray(data[trace], - allignment, default = NaN)
 end
 
 
@@ -242,7 +241,6 @@ function normalise_DeltaF0(df,Norm_window::ContinuousVariable, rate)
         ar = (ar-f0)/f0
         sh = df[idx].shifts[1]
         ongoing = ShiftedArray(ar, sh, default = NaN)
-
         push!(provisory,ongoing)
     end
     provisory = convert(Array{typeof(provisory[1])},provisory)
