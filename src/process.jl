@@ -93,7 +93,7 @@ function Analysis(df::Mutable_bhvs)
     plot = plot_dict[observe(df.plot_type)[]] #function plot, groupedbar,
     plot_kwargs = []
     Analysis(data = data, splitby = splitby, compute_error = compute_error,
-    x=x,y=y, axis_type = axis_type,smoother=smoother,package=package,
+    x=x,y=y, axis_type = axis_type,smoother = smoother,package = package,
     plot=plot,plot_kwargs = plot_kwargs, xfunc = mean, yfunc = mean)
 end
 
@@ -110,30 +110,30 @@ end
 
 function Analysis(df::Mutable_traces)
     splitby = Tuple(Symbol.(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[]))) #tupla of symbols
-    compute_error =   observe(df.compute_error)[]
-    error = compute_error == "bootstrap" || calc_er == "all" || calc_er == "none"? () : [Symbol.(observe(df.compute_error)[])]
+    calc_er = observe(df.compute_error)[]
+    error = calc_er == "bootstrap" || calc_er == "all" || calc_er == "none"? () : [Symbol.(calc_er)]
+    compute_error = get_error(df)
     info_cols = tuplejoin([:trial],splitby,error)
     tracetype = observe(df.tracetype)[]
     t, x_interval, rate = get_trace(df,tracetype)
     info_vals = select(t, info_cols)
     data = table_data(t,x_interval,tracetype)
-    
+
     plot_data = JuliaDB.table(data)
     plot_data = JuliaDB.join(plot_data, info_vals, lkey=:trial, rkey=:trial)
     plot_data = @transform plot_data {time = :frame/rate}
 
     x = :time #:Symbol
     y = :dati #:Symbol
-    axis_type = Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
+    axis_type = :discrete #Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
     smoother = observe(df.smoother)[]
-    axis_type = Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
     package = GroupedError()
-    plot = nothing #function plot, groupedbar,
+    plot = plot_dict["line plot"] #function plot, groupedbar,
     plot_kwargs = []
 
     Analysis(data = plot_data, splitby = splitby, compute_error = compute_error,
     x=x,y=y, axis_type = axis_type,smoother=smoother,package=package,
-    plot=plot,plot_kwargs = plot_kwargs, xfunc = xfunc, yfunc = yfunc,zfunc= zfunc)
+    plot=plot,plot_kwargs = plot_kwargs,xfunc = mean, yfunc = mean)
 end
 
 function get_error(df::Mutable_traces)

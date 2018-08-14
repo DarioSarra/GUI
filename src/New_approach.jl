@@ -6,23 +6,26 @@ w = Window()
 body!(w, b.widget)
 bA = Analysis(b)
 ##
-unique(f.sub_data[],:MouseID,:streaks)
-##
 df = Mutable_trace(f.sub_data[],:pokes)
 w = Window()
 body!(w, df.widget)
 ##
+x_allignment_dict = get_option_allignments(f.sub_data[],:pokes)
+x_allignment = dropdown(x_allignment_dict, label = "Allign on")
+observe(df.x_allignment)[]
+##
 tic()
-data,info_vals  = table_data(df)
-plot_data = JuliaDB.table(data)
-plot_data = JuliaDB.join(plot_data, info_vals, lkey=:trial, rkey=:trial)
-plot_data = @transform plot_data {time = :frame/rate}
+dfA = Analysis(df)
 toc()
-plot_data
+process(dfA)
+typeof(select(dfA.data,:dati))
+dfA.data
 ##
 
-##
-(split...)
+bA = Analysis(b)
+process(bA)
+typeof(bA.data)
+
 ##
 tic()
 split = Tuple(Symbol.(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[]))) #tupla of symbols

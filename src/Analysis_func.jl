@@ -1,10 +1,16 @@
-function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol)
+function extract_rawtraces(data::Observable, bhv_type::Symbol,shift::Widget)
+    o_data = observe(data)[]
+    o_shift = Symbol(observe(shift)[])
+    extract_rawtraces(o_data, bhv_type,o_shift)
+end
+
+function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol,shift::Symbol)
     provisory = []
     for i = 1:size(data,1)
         if isempty(getfield(data[i],bhv_type))
             continue
         else
-            ongoing = extract_rawtraces(data[i],bhv_type)
+            ongoing = extract_rawtraces(data[i],bhv_type,shift)
             if isempty(provisory)
                 provisory = ongoing
             else
@@ -15,16 +21,16 @@ function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol)
     return provisory
 end
 
-function extract_rawtraces(data::PhotometryStructure, bhv_type::Symbol)
+function extract_rawtraces(data::PhotometryStructure, bhv_type::Symbol,shift::Symbol)
     bhv_data = getfield(data, bhv_type)
-    ongoing = extract_rawtraces(bhv_data,data.traces)
+    ongoing = extract_rawtraces(bhv_data,data.traces,shift)
     return ongoing
 end
 
-function extract_rawtraces(bhv_data::AbstractDataFrame, traces_data::AbstractDataFrame)
+function extract_rawtraces(bhv_data::AbstractDataFrame, traces_data::AbstractDataFrame,shift::Symbol)
     ongoing = JuliaDB.table(bhv_data)
     for name in names(traces_data)
-        provisory = [ShiftedArray(traces_data[name], -i) for i in bhv_data[:In]]
+        provisory = [ShiftedArray(traces_data[name], -i) for i in bhv_data[shift]]
         ongoing = setcol(ongoing, name, provisory)
     end
     return ongoing
@@ -98,7 +104,7 @@ end
 function rotate_shifted(dati_ar::Array,x_interval::Range)
     ongoing = DataFrame(
     frame = collect(x_interval),
-    dati = copy(dati_ar))
+    dati = convert(Array{Float64}, copy(dati_ar)))
 end
 
 function rotate_shifted(sig_ar::Array,ref_ar::Array,x_interval::Range)
@@ -131,6 +137,8 @@ function table_data(t,x_interval::Range,tracetype)
                 append!(plot_data,ongoing)
             end
         end
+        intercept, slope = linreg(plot_data[:sig],plot_data[:ref])
+        plot_data[:dati] = (plot_data[:sig] - (plot_data[:ref].*slope))
     end
     return plot_data
 end

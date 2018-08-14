@@ -124,7 +124,7 @@ function Mutable_trace(data::Array{Flipping.PhotometryStructure},bhv_type::Symbo
     widget = hbox(settings,visualization,selection)
 
     subdata = map(t->filter_norm_window(data,norm_window,rate),plotter)
-    plotdata = map(t->extract_rawtraces(observe(subdata)[],bhv_type),subdata)
+    plotdata = map(t->extract_rawtraces(subdata,bhv_type,x_allignment),subdata)
     mtr = Mutable_traces(bhv_type,data,
     Button,plotter,plt,subdata,plotdata,rate,fibers,
     trace_type,x_allignment,compute_error,norm_window,
@@ -132,6 +132,6 @@ function Mutable_trace(data::Array{Flipping.PhotometryStructure},bhv_type::Symbo
     #
     # map!(filter_norm_window(data,norm_window,rate),subdata)
     # map!(extract_rawtraces(observe(subdata)[],bhv_type),plotdata)
-    map!(t -> plot(rand(10)), plt, plotdata)
+    map!(t -> makeplot(mtr), plt, plotter)
     mtr
 end
