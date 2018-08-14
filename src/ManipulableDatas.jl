@@ -76,51 +76,7 @@ function Mutable_bhv(data)
     mt
 end
 
-function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol)
-    provisory = []
-    for i = 1:size(data,1)
-        if isempty(getfield(data[i],bhv_type))
-            continue
-        else
-            ongoing = extract_rawtraces(data[i],bhv_type)
-            if isempty(provisory)
-                provisory = ongoing
-            else
-                provisory = JuliaDB.merge(provisory,ongoing)
-            end
-        end
-    end
-    return provisory
-end
 
-function extract_rawtraces(data::PhotometryStructure, bhv_type::Symbol)
-    bhv_data = getfield(data, bhv_type)
-    ongoing = extract_rawtraces(bhv_data,data.traces)
-    return ongoing
-end
-
-function extract_rawtraces(bhv_data::AbstractDataFrame, traces_data::AbstractDataFrame)
-    ongoing = JuliaDB.table(bhv_data)
-    for name in names(traces_data)
-        provisory = [ShiftedArray(traces_data[name], -i) for i in bhv_data[:In]]
-        ongoing = setcol(ongoing, name, provisory)
-    end
-    return ongoing
-end
-
-
-function normalise(raw_ar,interval,x)
-    f0 = mean(raw_ar[interval])
-    ar = raw_ar[x]
-    ar = (ar-f0)/f0
-    sh = -x[1]
-    ongoing = ShiftedArray(ar, sh, default = NaN)
-    return ongoing
-end
-
-@inline tuplejoin(x) = x
-@inline tuplejoin(x, y) = (x..., y...)
-@inline tuplejoin(x, y, z...) = tuplejoin(tuplejoin(x, y), z...)
 
 mutable struct Mutable_traces
     bhv_type

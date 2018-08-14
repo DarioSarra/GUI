@@ -8,13 +8,123 @@ bA = Analysis(b)
 ##
 unique(f.sub_data[],:MouseID,:streaks)
 ##
-df = Mutable_trace(f.sub_data[],:streaks)
+df = Mutable_trace(f.sub_data[],:pokes)
 w = Window()
 body!(w, df.widget)
+##
+tic()
+data,info_vals  = table_data(df)
+plot_data = JuliaDB.table(data)
+plot_data = JuliaDB.join(plot_data, info_vals, lkey=:trial, rkey=:trial)
+plot_data = @transform plot_data {time = :frame/rate}
+toc()
+plot_data
+##
 
 ##
-unique(select(dfA.data,:indici))
+(split...)
+##
+tic()
+split = Tuple(Symbol.(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[]))) #tupla of symbols
+calc_er =   observe(df.compute_error)[]
+error = calc_er == "bootstrap" || calc_er == "all" || calc_er == "none"? () : [Symbol.(observe(df.compute_error)[])]
+info_cols = tuplejoin([:trial],split,error)
+norm_1 = selecteditems(df.norm_window)[1] #starting index for normalization
+norm_2 = selecteditems(df.norm_window)[2] #ending index for normalization
+rate = observe(df.rate)[] #frame per second
+norm_int = Int64(norm_1*rate):Int64(norm_2*rate) #normalization range
+x_1 = selecteditems(df.plot_window)[1] #starting index for visualization
+x_2 = selecteditems(df.plot_window)[2] #ending index for visualization
+x_interval  = Int64(x_1*rate):Int64(x_2*rate) #visualization range
+x = :time
+y = Symbol(observe(df.fibers)[])
+tracetype = observe(df.tracetype)[]
+
+
+if tracetype == "Raw"
+    y = Symbol(observe(df.fibers)[])
+    t = @apply df.plotdata[] begin
+        @transform {view = collect_view(cols(y),x_interval)}
+    end
+elseif tracetype == "Normalised"
+    y = Symbol(observe(df.fibers)[])
+    # create normalised data
+    t = @apply df.plotdata[] begin
+        @transform {Normalise = normalise(cols(y),norm_int,x_interval)}
+        @transform {view = collect_view(:Normalise,x_interval)}
+    end
+elseif tracetype == "GLM"
+    try
+        y_name = observe(df.fibers)[]
+        yref = Symbol(replace(y_name,"sig","ref",1))
+        t = @apply df.plotdata[] begin
+            @transform {Normalise = normalise(cols(y),norm_int,x_interval)}
+            @transform {view = collect_view(:Normalise,x_interval)}
+            @transform {Normalise_ref = normalise(cols(yref),norm_int,x_interval)}
+            @transform {view_ref = collect_view(:Normalise_ref,x_interval)}
+        end
+    catch
+        println("can't find a reference for the selected trace ", y_name)
+        y = Symbol(observe(df.fibers)[])
+        # create normalised data
+        t = @apply df.plotdata[] begin
+            @transform {Normalise = normalise(cols(y),norm_int,x_interval)}
+            @transform {view = collect_view(:Normalise,x_interval)}
+        end
+    end
+
+end
+
+# collect data in visualization interval
+t = setcol(t,:trial,collect(1:length(t))) #add trial number to operate
+
+info_vals = select(t, info_cols)
+plot_data = []
+
+for idx = 1:length(t)
+    # create a Dataframe with each frame in a row
+    ongoing = DataFrame(
+    trial = copy(select(t,:trial)[idx]),
+    frame = collect(x_interval),
+    dati = copy(select(t,:view)[idx]))
+    if isempty(plot_data)
+        plot_data = ongoing
+    else
+        append!(plot_data,ongoing)
+    end
+end
+plot_data = JuliaDB.table(plot_data)
+plot_data = JuliaDB.join(plot_data, info_vals, lkey=:trial, rkey=:trial)
+plot_data = @transform plot_data {time = :frame/rate}
+toc()
+##
+
+
+
+
+
+
+##
+for idx = 1:length(t)
+    #split_vals = @where select(t,split) :trial ==idx
+    dati = collect(select(t,y)[idx][x_interval])
+    indici = collect(x_interval)
+    trial = repmat([idx],size(indici,1))
+    ongoing = table(trial,dati,indici, names = [:trial,:dati,:indici])
+    #ongoing = JuliaDB.join(split_vals,ongoing,lkey=:trial, rkey=:trial)
+    if isempty(plot_data)
+        plot_data = ongoing
+    else
+        plot_data = JuliaDB.merge(plot_data,ongoing)
+    end
+end
+
+
+
+##
+tic()
 dfA = Analysis(df)
+toc()
 
 ##
 t = @apply dataset begin
@@ -28,7 +138,6 @@ indici = collect(interval)
 trial = repmat([idx],size(indici,1))
 ongoing = table(trial,dati,indici, names = [:trial,:dati,:indici])
 split = select(t,dfA.splitby)[2]
-split[1]
 split = table(ndsparse(@NT(select(t,dfA.splitby)[2])))
 split = setcol(split, :trial, [idx])
 ongoing = JuliaDB.join(split,ongoing,lkey=:trial, rkey=:trial)

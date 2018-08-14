@@ -110,52 +110,26 @@ end
 
 function Analysis(df::Mutable_traces)
     splitby = Tuple(Symbol.(vcat(observe(df.splitby_cont)[],observe(df.splitby_cat)[]))) #tupla of symbols
-    compute_error = get_error(df) #tupla (:none, ) (:across, :MouseID) (:bootstrap, 100) (:across, :all)
-    y = Symbol(observe(df.fibers)[])
-    yfunc = observe(df.rate)[]
-    x_1 = selecteditems(df.plot_window)[1]
-    x_2 = selecteditems(df.plot_window)[2]
-    norm_1 = selecteditems(df.norm_window)[1]
-    norm_2 = selecteditems(df.norm_window)[2]
-    x_interval = Int64(x_1*yfunc):Int64(x_2*yfunc) #visualization interval
-    x = :indici #name of th columns in the plot_data
-    xfunc = Int64(norm_1*yfunc):Int64(norm_2*yfunc) #normalization interval
-    zfunc = Symbol(observe(df.tracetype)[])
-    axis_type = :discrete#Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
+    compute_error =   observe(df.compute_error)[]
+    error = compute_error == "bootstrap" || calc_er == "all" || calc_er == "none"? () : [Symbol.(observe(df.compute_error)[])]
+    info_cols = tuplejoin([:trial],splitby,error)
+    tracetype = observe(df.tracetype)[]
+    t, x_interval, rate = get_trace(df,tracetype)
+    info_vals = select(t, info_cols)
+    data = table_data(t,x_interval,tracetype)
+    
+    plot_data = JuliaDB.table(data)
+    plot_data = JuliaDB.join(plot_data, info_vals, lkey=:trial, rkey=:trial)
+    plot_data = @transform plot_data {time = :frame/rate}
+
+    x = :time #:Symbol
+    y = :dati #:Symbol
+    axis_type = Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
     smoother = observe(df.smoother)[]
+    axis_type = Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
     package = GroupedError()
-    plot = plot_dict["line plot"] #function plot, groupedbar,
+    plot = nothing #function plot, groupedbar,
     plot_kwargs = []
-
-    data = deepcopy(df.plotdata[])#indexed table
-    s = Symbol.(observe(df.splitby_cont)[])
-    if !isempty(s)
-        for i = 1:size(s,1)
-            bin = observe(b.bins)[]
-            data = JuliaDBMeta.@with data setcol(_, s[i], CategoricalArrays.cut(cols(s[i]),bin))
-        end
-    end
-
-    selection = tuplejoin([y],splitby)
-    t = select(data,selection)
-    t = pushcol(t,:trial,collect(1:length(t)))
-    split = tuplejoin([:trial],splitby)
-
-    plot_data = []
-
-     for idx = 1:length(t)
-        split_vals = @where select(t,split) :trial ==idx
-        dati = collect(select(t,y)[idx][x_interval])
-        indici = collect(x_interval)
-        trial = repmat([idx],size(indici,1))
-        ongoing = table(trial,dati,indici, names = [:trial,:dati,:indici])
-        ongoing = JuliaDB.join(split_vals,ongoing,lkey=:trial, rkey=:trial)
-        if isempty(plot_data)
-            plot_data = ongoing
-        else
-            plot_data = JuliaDB.merge(plot_data,ongoing)
-        end
-    end
 
     Analysis(data = plot_data, splitby = splitby, compute_error = compute_error,
     x=x,y=y, axis_type = axis_type,smoother=smoother,package=package,
