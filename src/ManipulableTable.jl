@@ -40,27 +40,3 @@ function ManipulableTable(data::Array{Flipping.PhotometryStructure},bhv_type::Sy
     map!(t -> makeplot(mt), plt, subdata)
     mt
 end
-
-
-function filterdf(df::Array{PhotometryStructure}, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable},field)
-    #filter for categorical and continouos variable options
-    subdata = deepcopy(df)
-    active_cat = categorical[find(isselected(categorical))]
-    for c in active_cat # go through every active variable
-        for i = 1:size(subdata,1)
-            session = getfield(subdata[i], field)
-            session = session[in.(session[c.name],(selecteditems(c),)),:]
-            setfield!(subdata[i],field,session)
-        end
-    end
-    active_con = continouos[find(isselected(continouos))]
-    for c in active_con
-        for i = 1:size(subdata,1)
-            session = getfield(subdata[i], field)
-            session = session[session[c.name] .>= observe(c.start)[],:]
-            session = session[session[c.name] .<= observe(c.stop)[],:]
-            setfield!(subdata[i],field,session)
-        end
-    end
-    return subdata
-end

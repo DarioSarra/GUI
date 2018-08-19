@@ -1,5 +1,7 @@
 abstract type AbstractVariable; end
 
+
+
 mutable struct CategoricalVariable<:AbstractVariable
     name::Symbol
     widget

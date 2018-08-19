@@ -1,40 +1,8 @@
-function extract_rawtraces(data::Observable, bhv_type::Symbol,shift::Widget)
-    o_data = observe(data)[]
-    o_shift = Symbol(observe(shift)[])
-    extract_rawtraces(o_data, bhv_type,o_shift)
-end
-
-function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol,shift::Symbol)
-    provisory = []
-    for i = 1:size(data,1)
-        if isempty(getfield(data[i],bhv_type))
-            continue
-        else
-            ongoing = extract_rawtraces(data[i],bhv_type,shift)
-            if isempty(provisory)
-                provisory = ongoing
-            else
-                provisory = JuliaDB.merge(provisory,ongoing)
-            end
-        end
-    end
-    return provisory
-end
-
-function extract_rawtraces(data::PhotometryStructure, bhv_type::Symbol,shift::Symbol)
-    bhv_data = getfield(data, bhv_type)
-    ongoing = extract_rawtraces(bhv_data,data.traces,shift)
-    return ongoing
-end
-
-function extract_rawtraces(bhv_data::AbstractDataFrame, traces_data::AbstractDataFrame,shift::Symbol)
-    ongoing = JuliaDB.table(bhv_data)
-    for name in names(traces_data)
-        provisory = [ShiftedArray(traces_data[name], -i) for i in bhv_data[shift]]
-        ongoing = setcol(ongoing, name, provisory)
-    end
-    return ongoing
-end
+tuplejoin(t1::Tuple, t2::Tuple, t3...) = tuplejoin((t1..., t2...), t3...)
+tuplejoin(t::Tuple) = t
+@inline tuplejoin(x) = x
+@inline tuplejoin(x, y) = (x..., y...)
+@inline tuplejoin(x, y, z...) = tuplejoin(tuplejoin(x, y), z...)
 
 function normalise(raw_ar,norm_interval,x_interval)
     f0 = mean(raw_ar[norm_interval])
@@ -48,13 +16,6 @@ function collect_view(raw_ar,x_interval)
     return ongoing
 end
 
-tuplejoin(t1::Tuple, t2::Tuple, t3...) = tuplejoin((t1..., t2...), t3...)
-tuplejoin(t::Tuple) = t
-@inline tuplejoin(x) = x
-@inline tuplejoin(x, y) = (x..., y...)
-@inline tuplejoin(x, y, z...) = tuplejoin(tuplejoin(x, y), z...)
-
-
 function get_trace(df::Mutable_traces,tracetype)
     y = observe(df.fibers)[]
     x_1 = selecteditems(df.plot_window)[1] #starting index for visualization
@@ -63,7 +24,7 @@ function get_trace(df::Mutable_traces,tracetype)
     x_interval  = Int64(x_1*rate):Int64(x_2*rate) #visualization range
     if tracetype == "Raw"
         t = @apply df.plotdata[] begin
-            @transform {view = collect_view(cols(y),x_interval)}
+                @transform {view = collect_view(cols(y),x_interval)}
         end
         t = setcol(t,:trial,collect(1:length(t)))
     elseif tracetype == "Normalised"
@@ -72,7 +33,9 @@ function get_trace(df::Mutable_traces,tracetype)
         norm_2 = selecteditems(df.norm_window)[2] #ending index for normalization
         norm_int = Int64(norm_1*rate):Int64(norm_2*rate) #normalization range
         t = @apply df.plotdata[] begin
-            @transform {view = normalise(cols(y),norm_int,x_interval)}
+                @transform {view = normalise(cols(y),norm_int,x_interval)}
+                flatten(_,:view)
+                pushcol(_)
         end
         t = setcol(t,:trial,collect(1:length(t)))
     elseif tracetype == "GLM"

@@ -1,3 +1,5 @@
+Mutable_Gui()
+##
 f = Filtering(data[],:pokes)
 w = Window()
 body!(w, f.widget)
@@ -79,3 +81,24 @@ end
     @y _.DRN_sig
     @plot plot() :ribbon
 end
+
+##
+using JuliaDB, JuliaDBMeta
+s = table(1:10, 1:10, names = [:x, :y])
+t = table([1,2,3], [1:1000, 1:100000, 1:10000], names = [:a, :b])
+
+@apply t begin
+    @transform {b = :b[1:10]}
+    flatten(_, :b)
+end
+
+t
+
+df = table([1,2], [s, s], names = [:a, :b])
+flatten(df, :b)
+
+t = table(rand(Bool, 10), 1:10, names = [:a, :b])
+g = JuliaDB.groupby(t, :a) do s
+    table(1:10, 1:10, names = [:x, :y])
+end
+flatten(g)

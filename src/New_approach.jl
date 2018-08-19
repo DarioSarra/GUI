@@ -1,25 +1,49 @@
-f = Filtering(data[],:streaks)
+f = Filtering(data[],:pokes)
 w = Window()
 body!(w, f.widget)
-b = Mutable_bhv(f.bhv_data[])
+unique(select(f.bhv_data[],:Gen))
+##
+b = Mutable_bhv(f)
 w = Window()
 body!(w, b.widget)
 bA = Analysis(b)
+unique(select(bA.data,:Gen))
 ##
-df = Mutable_trace(f.sub_data[],:pokes)
+unique(select(bA.data,:Gen))
+##
+that = @> bA.data begin
+    @across (_.MouseID)
+    @splitby (_.Gen)
+    @x  _.PokeDur :discrete #Last_Reward
+    @y :density
+    #@plot groupedbar()
+    @plot plot() :ribbon
+end
+##
+df = Mutable_trace(f)
 w = Window()
 body!(w, df.widget)
 ##
-x_allignment_dict = get_option_allignments(f.sub_data[],:pokes)
-x_allignment = dropdown(x_allignment_dict, label = "Allign on")
-observe(df.x_allignment)[]
+bhv_data = data[][1].pokes
+traces_data = data[][1].traces
+ongoing = JuliaDB.table(bhv_data)
+ns = names(traces_data)
+shifting = :In
+ts = [table((ShiftedArray(traces_data[name], -i) for name in ns)...; names = ns, copy=false) for i in bhv_data[shifting]]
+ongoing
+
+s = @transform_vec ongoing {tracce = ts};
+function appiattiscilo(s, r = -10:10)
+    @transform {tracce = Missings.skipmissing(view(:tracce, r))}
+end
+ttt = appiattiscilo(s);
 ##
 tic()
 dfA = Analysis(df)
 toc()
 process(dfA)
 typeof(select(dfA.data,:dati))
-dfA.data
+unique(select(dfA.data,:Gen))
 ##
 
 bA = Analysis(b)

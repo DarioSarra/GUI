@@ -63,26 +63,6 @@ function ManipulableTrace(df::ManipulableTable)
     mtr
 end
 
-function get_option_allignments(data::Flipping.PhotometryStructure,bhv_type::Symbol)
-    provisory = getfield(data,bhv_type)
-    Cols = names(provisory)
-    Columns = string.(Cols);
-    result = Columns[(contains.(Columns,"In").|contains.(Columns,"Out")).& .!contains.(Columns,"Poke")]
-    lista = OrderedDict()
-    for name in result
-        lista[name] = Symbol(name)
-    end
-    return lista
-end
-
-function get_option_allignments(data::Array{Flipping.PhotometryStructure,1},bhv_type::Symbol)
-    checkup = verify_names(data,bhv_type)
-    if isempty(checkup)
-        get_option_allignments(data[1],bhv_type)
-    else
-        error("inconsistent naming across tables")
-    end
-end
 
 function process_traces(df::ManipulableTrace)
     bhv_type = df.bhv_type
@@ -143,43 +123,7 @@ function convert_traces(df::DataFrame,splitby,sa::Array{ShiftedArray},VisW)
 end
 
 
-function filter_norm_window(df::PhotometryStructure,Norm_window::ContinuousVariable, rate)
-    data  = df.streaks
-    fps = observe(rate)[]
-    start,stop = selecteditems(Norm_window)
-    sel = Array{Bool}(0) #boolean array to filter streaks
-    slen = []# Array of valid streaks to filter corrisponding pokes
-    for i = 2:size(data,1)
-        v = data[i,:In]/fps + start >= data[i-1,:Out]/fps
-        push!(sel,v)
-        if !v
-        #= if there isn't enought time push the streak number
-        to remove the pokes in that streak=#
-            push!(slen,i)
-        end
-    end
-    #=sel has one value less than streaks num,
-    we assume first streak to have enough time before start=#
-    unshift!(sel,true)
-    df.streaks = df.streaks[sel,:]
-    for i in slen
-        pokes_rows = find(df.pokes[:Streak_n].==i)
-        deleterows!(df.pokes,pokes_rows)
-    end
-end
 
-
-function filter_norm_window(df::Array{PhotometryStructure},Norm_window::ContinuousVariable,rate)
-    subdata = deepcopy(df)
-    for i = 1:size(subdata,1)
-        if isempty(subdata[i].streaks)
-            continue
-        else
-            filter_norm_window(subdata[i], Norm_window, rate)
-        end
-    end
-    return subdata
-end
 
 function adjust_F0(df::ManipulableTrace)
     start,stop = selecteditems(df.norm_window)
