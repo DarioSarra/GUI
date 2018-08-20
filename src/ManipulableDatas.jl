@@ -83,6 +83,7 @@ function Mutable_bhv(data)
     axis_type = dropdown(x_type_dict,label = "X variable Type")
     smoother = slider(1:100,label = "Smoother")
     plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
+
     widget = hbox(splitby_cat,vbox(splitby_cont,bins),vbox(hbox(x_axis,y_axis,Button),plt,smoother),vbox(plot_type,axis_type,compute_error))
     mt = Mutable_bhvs(categorical,
     continouos,
@@ -234,15 +235,7 @@ function extract_rawtraces_table(bhv_data::AbstractDataFrame, traces_data::Abstr
     ts = [table((ShiftedArray(traces_data[name], -i) for name in ns)...; names = ns, copy=false) for i in bhv_data[shift]]
     @transform_vec ongoing {tracce = ts};
 end
-# function f(s)
-#     v = s[-50:50]
-#     v ./ sum(v)
-# end
-#
-# @apply ongoing begin
-#     @transform {ts = f(:ts)}
-#     flatten(_, :ts)
-# end
+
 
 function Mutable_trace(data::Array{Flipping.PhotometryStructure},bhv_type::Symbol)
     categorical_vars, continuous_vars = distinguish(data,bhv_type)

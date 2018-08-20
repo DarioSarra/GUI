@@ -4,6 +4,8 @@ function distinguish(data::IndexedTables.NextTable)
     for x in colnames(data)
         if x == :PokeSequence
             continue
+        elseif eltype(select(data,x)) <: ShiftedArray
+            continue
         elseif !(eltype(select(data,x)) <: Real) || (eltype(select(data,x)) == Bool)
             push!(categorical_vars,x)
         else
