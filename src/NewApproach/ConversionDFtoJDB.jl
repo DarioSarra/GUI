@@ -1,5 +1,3 @@
-using NaNMath
-
 """
 `convertin`
 convert an Array of PhotometryStructure to a Indexed table
