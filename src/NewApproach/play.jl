@@ -1,14 +1,3 @@
-data[][1].streaks[1,[:Session,:In]]
-select(streaks_t.or_data,:In)[1]
-size(parent(select(streaks_t.or_data,:Pokes)[1]))
-##
-d = ShiftedArray([1, 3, 5, 6, 7, 9, 16, 2, 3, 4, 7], -3 ,default = NaN);
-println(d)
-t = 5
-diff = 3 - 5
-d = lag(d,diff,default = NaN)
-print(d)
-
 ##
 pokes = UI_bhv(data,:pokes);
 w = Window()
@@ -21,6 +10,8 @@ process(a_pokes)
 pokes_t = UI_trace(data,:pokes);
 w = Window()
 body!(w, pokes_t.ui)
+##
+select(pokes_t.or_data,(:Streak_n,:Reward,:Poke_h))
 ##
 streaks_t = UI_trace(data,:streaks);
 w = Window()

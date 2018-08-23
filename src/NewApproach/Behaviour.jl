@@ -1,5 +1,4 @@
 mutable struct UI_bhvs
-    bhv_type
     or_data
     select_cat
     select_cont
@@ -21,16 +20,34 @@ function makeplot(df::UI_bhvs)
     process(a)
 end
 
-function UI_bhv(data::Observable,bhv_kind::Symbol)
-    bhv_type = bhv_kind
-    or_data = map(t->convertin(t,:pokes),data)
+function UI_bhv(data::Observable, x...)#keywar arg ask pietro
+    df = observe(data)[]
+    UI_bhv(df,x...)
+end
+
+function UI_bhv(data::AbstractDataFrame)
+    df = JuliaDB.table(data)
+    UI_bhv(df)
+end
+
+# function UI_bhv(data::Observable,bhv_kind::Symbol)
+#
+# end
+
+function UI_bhv(data::PhotometryStructure,bhv_kind::Symbol)
+    df = convertin(data,bhv_kind)
+    UI_bhv(df)
+end
+
+function UI_bhv(data::IndexedTables.NextTable)
+    or_data = data
     PLT_button = button("Plot")
     plotter = observe(PLT_button);
     plt = Observable{Any}(plot(rand(10)))
 
-    categorical_vars, continuous_vars = distinguish(or_data[])
+    categorical_vars, continuous_vars = distinguish(or_data)
     cols =  vcat(categorical_vars, continuous_vars)
-    select_cat, select_cont = buildvars(categorical_vars,continuous_vars,or_data[])
+    select_cat, select_cont = buildvars(categorical_vars,continuous_vars,or_data)
     split_cat = checkboxes(categorical_vars,label = "Split By Categorical")
     split_cont = checkboxes(continuous_vars,label = "Split By Continouos")
 
@@ -45,9 +62,9 @@ function UI_bhv(data::Observable,bhv_kind::Symbol)
     filter_widg = hbox(layout(select_cat),layout(select_cont))
     splitter_widg = hbox(split_cat,split_cont)
     plot_options = vbox(plot_type,y_axis,x_axis,axis_type,compute_error,bins)
-    filtered_data = map(t->filterdf(or_data[],select_cat,select_cont),plotter)
+    filtered_data = map(t->filterdf(or_data,select_cat,select_cont),plotter)
     ui = hbox(filter_widg,vbox(PLT_button,plt,smoother,splitter_widg),plot_options)
-    processed = UI_bhvs(bhv_type,
+    processed = UI_bhvs(
     or_data,
     select_cat,
     select_cont,
