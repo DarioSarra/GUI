@@ -26,7 +26,7 @@ mutable struct UI_traces
 end
 
 function UI_trace(data::Observable,bhv_kind::Symbol)
-    fps = spinbox(value = 50,label ="Frame per Seconds")
+    fps = spinbox(value = 50)
     bhv_type = bhv_kind
     or_data = extract_rawtraces(data, bhv_kind,fps)
     plot_bhv = button("Plot Behaviour")
@@ -64,11 +64,10 @@ function UI_trace(data::Observable,bhv_kind::Symbol)
     filter_widg = hbox(layout(select_cat),layout(select_cont))
     splitter_widg = vbox("Categorical", split_cat, vskip(1em), "Continuous", split_cont)
     plot_options = vbox(plot_bhv,plot_type,y_axis,x_axis,axis_type,compute_error,"Number of Bins",bins)
-    trace_options = hbox(tracetype,traces)
+    trace_options = hbox(tracetype,traces,x_allignment,vbox("Frame per Seconds",fps))
     windows_options = hbox(norm_window.widget,hskip(1em),plot_window.widget)
     #println("ok before filter")
-    filtered_data = map(t->filterdf(or_data,select_cat,select_cont),plotter_trace)
-    filtered_data = map(t->filterdf(or_data,select_cat,select_cont),plotter_bhv)
+    filtered_data = Observable{Any}(JuliaDB.table([1,2],[3,4],names = [:x,:y]))
 
     ui = hbox(filter_widg,vbox(hbox(plot_trace, hskip(1em),windows_options),plt,trace_options,smoother,splitter_widg),plot_options)
 
@@ -77,7 +76,8 @@ function UI_trace(data::Observable,bhv_kind::Symbol)
     split_cont,bins,compute_error,x_axis,y_axis,axis_type,smoother,
     plot_type,traces,tracetype, x_allignment,norm_window,
     plot_window,plot_bhv,plot_trace,plt,filtered_data,ui)
-
+    map!(t->filterdf(processed),filtered_data,plotter_trace)
+    map!(t->filterdf(processed),filtered_data,plotter_bhv)
     map!(t -> makeplot_t(processed), plt, plotter_trace)
     map!(t -> makeplot_b(processed), plt, plotter_bhv)
     return processed

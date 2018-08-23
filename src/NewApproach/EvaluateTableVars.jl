@@ -35,6 +35,13 @@ function buildvars(cat::Array{Any}, con::Array{Any}, data::IndexedTables.NextTab
     return categorical_vars, continuous_vars
 end
 
+function filterdf(data::UI_traces)
+    df = data.or_data
+    categorical = data.select_cat
+    continouos = data.select_cont
+    filterdf(df, categorical, continouos)
+end
+
 function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable})
     #filter for categorical and continouos variable options
     subdata = deepcopy(df)
