@@ -18,10 +18,10 @@ function smoothing_kwargs(a::Analysis)
 end
 
 ispointbypoint(a::Analysis) =
-    a.axis_type == :pointbypoint || (a.axis_type == :auto) && (a.y in colnames(a.data))
+    a.axis_type == :pointbypoint || (a.axis_type == :auto) && (a.y in colnames(a.data)) && (a.x in colnames(a.data))
 
 isdiscrete(a::Analysis) =
-    a.axis_type == :discrete || (a.axis_type == :auto) && !(eltype(column(a.data, a.x))<:Real)
+    !(a.x in colnames(a.data)) || a.axis_type == :discrete || (a.axis_type == :auto) && !(eltype(column(a.data, a.x))<:Real)
 
 isbinned(a) = a.axis_type == :binned
 

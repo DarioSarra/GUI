@@ -1,16 +1,18 @@
-mutable struct UI_bhvs
+@with_kw mutable struct UI_bhvs
     or_data
     select_cat
     select_cont
     split_cat
     split_cont
-    bins
+    bins = spinbox(value = 2,label ="Number of Bins")
     compute_error
     x_axis
     y_axis
-    axis_type
-    smoother
-    plot_type
+    axis_type = dropdown(x_type_dict,label = "X variable Type")
+    smoother = slider(1:100,label = "Smoother")
+    plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
+    plt
+    dir = joinpath(dirname(@__DIR__), "Plots")
     filtered_data
     ui
 end
@@ -52,13 +54,12 @@ function UI_bhv(data::IndexedTables.NextTable)
     split_cat = checkboxes(categorical_vars,label = "Split By Categorical")
     split_cont = checkboxes(continuous_vars,label = "Split By Continouos")
 
-    bins = spinbox(value = 2,label ="Number of Bins")
+
     compute_error = dropdown(vcat(["none","bootstrap","all"],cols),label = "Compute_error")
     x_axis = dropdown(cols,label = "X axis")
     y_axis = dropdown(vcat(["density", "cumulative"],cols),label = "Y axis")
-    axis_type = dropdown(x_type_dict,label = "X variable Type")
-    smoother = slider(1:100,label = "Smoother")
-    plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
+
+
 
     filter_widg = hbox(layout(select_cat),layout(select_cont))
     splitter_widg = hbox(split_cat,split_cont)
@@ -66,20 +67,21 @@ function UI_bhv(data::IndexedTables.NextTable)
     filtered_data = map(t->filterdf(or_data,select_cat,select_cont),plotter)
     ui = hbox(filter_widg,vbox(PLT_button,plt,smoother,splitter_widg),plot_options)
     processed = UI_bhvs(
-    or_data,
-    select_cat,
-    select_cont,
-    split_cat,
-    split_cont,
-    bins,
-    compute_error,
-    x_axis,
-    y_axis,
-    axis_type,
-    smoother,
-    plot_type,
-    filtered_data,
-    ui)
+    or_data = or_data,
+    select_cat = select_cat,
+    select_cont = select_cont,
+    split_cat = split_cat,
+    split_cont = split_cont,
+    #bins,
+    compute_error = compute_error,
+    x_axis = x_axis,
+    y_axis = y_axis,
+    #axis_type,
+    #smoother,
+    #plot_type,
+    plt = plt,
+    filtered_data = filtered_data,
+    ui = ui)
     map!(t -> makeplot(processed), plt, plotter)
     processed
     return processed
