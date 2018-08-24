@@ -44,6 +44,7 @@ function UI_bhv(data::IndexedTables.NextTable)
     PLT_button = button("Plot")
     plotter = observe(PLT_button);
     plt = Observable{Any}(plot(rand(10)))
+    Save_button = button("Save")
 
     categorical_vars, continuous_vars = distinguish(or_data)
     cols =  vcat(categorical_vars, continuous_vars)

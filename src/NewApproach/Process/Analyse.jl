@@ -29,9 +29,9 @@ end
 function Analysis_b(df::UI_traces)
     data = deepcopy(df.filtered_data[])#indexed table
     s = Symbol.(observe(df.split_cont)[])
+    bin = observe(df.bins)[]
     if !isempty(s)
         for i = 1:size(s,1)
-            bin = observe(b.bins)[]
             data = JuliaDBMeta.@with data setcol(_, s[i], CategoricalArrays.cut(cols(s[i]),bin))
         end
     end
@@ -48,17 +48,6 @@ function Analysis_b(df::UI_traces)
     x=x,y=y, axis_type = axis_type,smoother = smoother,package = package,
     plot=plot,plot_kwargs = plot_kwargs, xfunc = mean, yfunc = mean)
 end
-
-# function get_error(df::UI_bhvs)
-#     inputvalue = observe(df.compute_error)[]
-#     if inputvalue == "none"
-#         return nothing
-#     elseif inputvalue == "bootstrap"
-#         return (:bootstrap,observe(df.smoother)[])
-#     else
-#         return(:across, Symbol(inputvalue))
-#     end
-# end
 
 function Analysis_t(data::UI_traces)
     selected_trace = observe(data.traces)[]
@@ -110,6 +99,40 @@ function Analysis_t(data::UI_traces)
 end
 
 function get_error(df::UI_traces)
+    inputvalue = observe(df.compute_error)[]
+    if inputvalue == "none"
+        return nothing
+    elseif inputvalue == "bootstrap"
+        return (:bootstrap,observe(df.smoother)[])
+    else
+        return(:across, Symbol(inputvalue))
+    end
+end
+
+function Analysis(df::UI_bhvs)
+    data = deepcopy(df.filtered_data[])#indexed table
+    s = Symbol.(observe(df.split_cont)[])
+    bin = observe(df.bins)[]
+    if !isempty(s)
+        for i = 1:size(s,1)
+            data = JuliaDBMeta.@with data setcol(_, s[i], CategoricalArrays.cut(cols(s[i]),bin))
+        end
+    end
+    splitby = Tuple(vcat(observe(df.split_cont)[],observe(df.split_cat)[])) #tupla of symbols
+    compute_error = get_error(df) #tupla (:none, ) (:across, :MouseID) (:bootstrap, 100) (:across, :all)
+    x = Symbol(observe(df.x_axis)[])
+    y = Symbol(observe(df.y_axis)[])
+    axis_type = Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
+    smoother = observe(df.smoother)[]
+    package = GroupedError()
+    plot = plot_dict[observe(df.plot_type)[]] #function plot, groupedbar,
+    plot_kwargs = []
+    Analysis(data = data, splitby = splitby, compute_error = compute_error,
+    x=x,y=y, axis_type = axis_type,smoother = smoother,package = package,
+    plot=plot,plot_kwargs = plot_kwargs, xfunc = mean, yfunc = mean)
+end
+
+function get_error(df::UI_bhvs)
     inputvalue = observe(df.compute_error)[]
     if inputvalue == "none"
         return nothing

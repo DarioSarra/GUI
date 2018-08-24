@@ -1,8 +1,9 @@
+dataset = FileIO.load(filename[]) |> DataFrame;
+dataset
 ##
-pokes = UI_bhv(data,:pokes);
+CNO = UI_bhv(data[]);
 w = Window()
-body!(w, pokes.ui)
-
+body!(w, CNO.ui)
 ##
 a_pokes = Analysis(pokes)
 process(a_pokes)

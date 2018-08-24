@@ -17,7 +17,7 @@ using Flipping
 include("Constants.jl");
 include("ColumnTypes.jl");
 include("Trace.jl");
-#include("Behaviour.jl");
+include("Behaviour.jl");
 include("Layout.jl");
 include("EvaluateTableVars.jl");
 include("ConversionDFtoJDB.jl");

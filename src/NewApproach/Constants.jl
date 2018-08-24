@@ -11,7 +11,7 @@ const plot_dict = OrderedDict(
 const x_type_dict = OrderedDict(
     "auto" => :auto,
     "discrete" => :discrete,
-    "continouos" => :continouos,
+    "continuous" => :continuous,
 )
 
 const tracetype_dict = OrderedDict(
