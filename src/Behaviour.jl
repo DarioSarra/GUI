@@ -4,17 +4,17 @@
     select_cont
     split_cat
     split_cont
-    bins = spinbox(value = 2,label ="Number of Bins")
+    bins = spinbox(value = 2)
     compute_error
     x_axis
     y_axis
     axis_type = dropdown(x_type_dict,label = "X variable Type")
     smoother = slider(1:100,label = "Smoother")
     plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
+    PLT_button
     plt
     dir = joinpath(dirname(@__DIR__), "Plots")
     filtered_data
-    ui
 end
 
 function makeplot(df::UI_bhvs)
@@ -46,43 +46,25 @@ function UI_bhv(data::IndexedTables.NextTable)
     PLT_button = button("Plot")
     plotter = observe(PLT_button);
     plt = Observable{Any}(plot(rand(10)))
-    Save_button = button("Save")
 
     categorical_vars, continuous_vars = distinguish(or_data)
     cols =  vcat(categorical_vars, continuous_vars)
     select_cat, select_cont = buildvars(categorical_vars,continuous_vars,or_data)
-    split_cat = checkboxes(categorical_vars,label = "Split By Categorical")
-    split_cont = checkboxes(continuous_vars,label = "Split By Continouos")
-
+    split_cat = checkboxes(categorical_vars)
+    split_cont = checkboxes(continuous_vars)
 
     compute_error = dropdown(vcat(["none","bootstrap","all"],cols),label = "Compute_error")
     x_axis = dropdown(cols,label = "X axis")
     y_axis = dropdown(vcat(["density", "cumulative"],cols),label = "Y axis")
 
-
-
-    filter_widg = hbox(layout(select_cat),layout(select_cont))
-    splitter_widg = hbox(split_cat,split_cont)
-    plot_options = vbox(plot_type,y_axis,x_axis,axis_type,compute_error,bins)
     filtered_data = map(t->filterdf(or_data,select_cat,select_cont),plotter)
-    ui = hbox(filter_widg,vbox(PLT_button,plt,smoother,splitter_widg),plot_options)
-    processed = UI_bhvs(
-    or_data = or_data,
-    select_cat = select_cat,
-    select_cont = select_cont,
-    split_cat = split_cat,
-    split_cont = split_cont,
-    #bins,
-    compute_error = compute_error,
-    x_axis = x_axis,
-    y_axis = y_axis,
-    #axis_type,
-    #smoother,
-    #plot_type,
-    plt = plt,
-    filtered_data = filtered_data,
-    ui = ui)
+
+    processed = UI_bhvs(or_data = or_data, select_cat = select_cat,select_cont = select_cont,
+    split_cat = split_cat,split_cont = split_cont,compute_error = compute_error,x_axis = x_axis,
+    y_axis = y_axis,PLT_button = PLT_button,plt = plt,filtered_data = filtered_data)
+    map!(t->filterdf(processed),filtered_data,plotter)
     map!(t -> makeplot(processed), plt, plotter)
+
     processed
     return processed
 end

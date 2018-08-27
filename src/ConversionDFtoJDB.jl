@@ -26,6 +26,11 @@ function extract_rawtraces(data::Observable, bhv_type::Symbol,fps::Widget{:spinb
     extract_rawtraces(o_data, bhv_type,o_fps)
 end
 
+function extract_rawtraces(data::Observable, bhv_type::Symbol,fps::Int64)
+    o_data = observe(data)[]
+    extract_rawtraces(o_data, bhv_type,fps)
+end
+
 function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol,fps::Int64)
     provisory = []
     for i = 1:size(data,1)

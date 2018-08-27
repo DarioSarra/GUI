@@ -28,8 +28,9 @@ function buildvars(cat::Array{Any}, con::Array{Any}, data::IndexedTables.NextTab
         push!(categorical_vars,CategoricalVariable(x, values))
     end
     for x in con
-        lowest = minimum(select(data,x))
-        highest = maximum(select(data,x))
+        mask = @. !isnan(select(data,x))
+        lowest = minimum(select(data,x)[mask])
+        highest = maximum(select(data,x)[mask])
         push!(continuous_vars,ContinuousVariable(Symbol(x), lowest,highest))
     end
     return categorical_vars, continuous_vars
@@ -42,57 +43,78 @@ function filterdf(data::UI_traces)
     filterdf(df, categorical, continouos)
 end
 
+function filterdf(data::UI_bhvs)
+    df = data.or_data
+    categorical = data.select_cat
+    continouos = data.select_cont
+    filterdf(df, categorical, continouos)
+end
+
+# function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable})
+#     #filter for categorical and continouos variable options
+#     subdata = deepcopy(df)
+#     active_cat = categorical[find(isselected(categorical))]
+#     for c in active_cat # go through every active variable
+#         subdata = subdata[in.(select(subdata,c.name),(selecteditems(c),))]
+#     end
+#     active_con = continouos[find(isselected(continouos))]
+#     for c in active_con
+#         subdata = subdata[select(subdata,c.name).>= observe(c.start)[]]
+#         subdata = subdata[select(subdata,c.name).<= observe(c.stop)[]]
+#     end
+#     return subdata
+# end
+
 function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable})
     #filter for categorical and continouos variable options
-    subdata = deepcopy(df)
+    mask = map(t->true, df)
     active_cat = categorical[find(isselected(categorical))]
     for c in active_cat # go through every active variable
-        subdata = subdata[in.(select(subdata,c.name),(selecteditems(c),))]
+        mask .&= in.(select(df,c.name),(selecteditems(c),))
     end
     active_con = continouos[find(isselected(continouos))]
     for c in active_con
-        subdata = subdata[select(subdata,c.name).>= observe(c.start)[]]
-        subdata = subdata[select(subdata,c.name).<= observe(c.stop)[]]
+        mask .&= observe(c.start)[] .<= select(df,c.name).<= observe(c.stop)[]
     end
-    return subdata
+    return df[mask]
 end
 
 function filterdf(df::IndexedTables.NextTable,observation::Tuple{Array{CategoricalVariable,1},Array{ContinuousVariable,1}})
     filterdf(df,observation[1],observation[2])
 end
 
-function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable})
-    #filter for categorical and continouos variable options
-    subdata = deepcopy(df)
-    active_cat = categorical[find(isselected(categorical))]
-    for c in active_cat # go through every active variable
-        subdata = subdata[in.(select(subdata,c.name),(selecteditems(c),))]
-    end
-    return subdata
-end
+# function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable})
+#     #filter for categorical and continouos variable options
+#     subdata = deepcopy(df)
+#     active_cat = categorical[find(isselected(categorical))]
+#     for c in active_cat # go through every active variable
+#         subdata = subdata[in.(select(subdata,c.name),(selecteditems(c),))]
+#     end
+#     return subdata
+# end
+#
+# function filterdf(df::IndexedTables.NextTable, continouos::Array{ContinuousVariable})
+#     #filter for categorical and continouos variable options
+#     subdata = deepcopy(df)
+#     active_con = continouos[find(isselected(continouos))]
+#     for c in active_con
+#         subdata = subdata[select(subdata,c.name).>= observe(c.start)[]]
+#         subdata = subdata[select(subdata,c.name).<= observe(c.stop)[]]
+#     end
+#     return subdata
+# end
 
-function filterdf(df::IndexedTables.NextTable, continouos::Array{ContinuousVariable})
-    #filter for categorical and continouos variable options
-    subdata = deepcopy(df)
-    active_con = continouos[find(isselected(continouos))]
-    for c in active_con
-        subdata = subdata[select(subdata,c.name).>= observe(c.start)[]]
-        subdata = subdata[select(subdata,c.name).<= observe(c.stop)[]]
-    end
-    return subdata
-end
-
-function filtra(df::IndexedTables.NextTable,var::AbstractVariable)
-    subdata = deepcopy(df)
-    if typeof(var) == CategoricalVariable
-        println("type of var categorical")
-        subdata = subdata[in.(select(subdata,var.name),(selecteditems(var),))]
-    elseif typeof(var) == ContinuousVariable
-        println("type of var continuous")
-        subdata = subdata[select(subdata,var.name).>= observe(var.start)[]]
-        subdata = subdata[select(subdata,var.name).<= observe(var.stop)[]]
-    else
-        println("type of var not recognised")
-    end
-    return subdata
-end
+# function filtra(df::IndexedTables.NextTable,var::AbstractVariable)
+#     subdata = deepcopy(df)
+#     if typeof(var) == CategoricalVariable
+#         println("type of var categorical")
+#         subdata = subdata[in.(select(subdata,var.name),(selecteditems(var),))]
+#     elseif typeof(var) == ContinuousVariable
+#         println("type of var continuous")
+#         subdata = subdata[select(subdata,var.name).>= observe(var.start)[]]
+#         subdata = subdata[select(subdata,var.name).<= observe(var.stop)[]]
+#     else
+#         println("type of var not recognised")
+#     end
+#     return subdata
+# end
