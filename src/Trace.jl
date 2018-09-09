@@ -24,8 +24,12 @@
     dir = joinpath(dirname(@__DIR__), "Plots")
     filtered_data
 end
+function UI_trace(data::Observable,bhv_kind::Symbol,fps = 50)
+    ob_data = observe(data)[]
+    UI_trace(ob_data,bhv_kind,fps)
+end
 
-function UI_trace(data::Observable,bhv_kind::Symbol, fps = 50)
+function UI_trace(data::Array{Flipping.PhotometryStructure,1},bhv_kind::Symbol, fps = 50)
     bhv_type = bhv_kind
     or_data = extract_rawtraces(data, bhv_kind,fps)
     plot_bhv = button("Plot Behaviour")

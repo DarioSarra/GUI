@@ -59,7 +59,7 @@ function extract_rawtraces(data::PhotometryStructure, bhv_type::Symbol,fps::Int6
     return ongoing
 end
 
-function extract_rawtraces(bhv_data::AbstractDataFrame, traces_data::AbstractDataFrame,fps::Int64)
+function extract_rawtraces(bhv_data::DataFrames.AbstractDataFrame, traces_data::DataFrames.AbstractDataFrame,fps::Int64)
     ongoing = JuliaDB.table(bhv_data)
     trial_range = Array{UnitRange,1}()
     trial_start = []

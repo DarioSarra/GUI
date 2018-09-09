@@ -1,21 +1,18 @@
 const plot_dict = OrderedDict(
     "line plot" => plot,
     "scatter" => scatter,
-    "bar" => groupedbar,
+    "bar" => groupedbar)
     #"boxplot" => boxplot,
     #"violin" => violin,
     #"histogram2d" => histogram2d,
-    #"marginalhist" => marginalhist,
-)
+    #"marginalhist" => marginalhist)
 
 const x_type_dict = OrderedDict(
     "auto" => :auto,
     "discrete" => :discrete,
-    "continuous" => :continuous,
-)
+    "continuous" => :continuous)
 
 const tracetype_dict = OrderedDict(
     "Raw" => "Raw",
     "Normalised" => "Normalised",
-    "GLM" => "GLM"
-    )
+    "GLM" => "GLM")

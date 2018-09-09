@@ -28,7 +28,7 @@ function buildvars(cat::Array{Any}, con::Array{Any}, data::IndexedTables.NextTab
         push!(categorical_vars,CategoricalVariable(x, values))
     end
     for x in con
-        mask = @. !isnan(select(data,x))
+        mask = @. !isnan.(select(data,x))
         lowest = minimum(select(data,x)[mask])
         highest = maximum(select(data,x)[mask])
         push!(continuous_vars,ContinuousVariable(Symbol(x), lowest,highest))

@@ -1,20 +1,21 @@
-
+using GUI
+GUI.launch()
 ##
-CNO = UI_bhv(data[]);
-make_ui(CNO)
+c = GUI_ui();
+c.data[] = process_table(c.loading)
+c.ui
+##
+t = table(["a","b","c","d"],[1,2,3,4], names = [:x,:y])
+##
+DrnNac = UI_bhv(data[]);
+make_ui(DrnNac)
 ##
 a_pokes = Analysis(pokes)
 process(a_pokes)
 ##
 pokes_t = UI_trace(data,:pokes);
-w = Window()
-body!(w, pokes_t.ui)
-##
 make_ui(pokes_t)
 ##
 streaks_t = UI_trace(data,:streaks);
-w = Window()
-body!(w, streaks_t.ui)
-##
 make_ui(streaks_t)
 ##

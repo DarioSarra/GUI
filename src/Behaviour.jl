@@ -27,14 +27,10 @@ function UI_bhv(data::Observable, x...)#keywar arg ask pietro
     UI_bhv(df,x...)
 end
 
-function UI_bhv(data::AbstractDataFrame)
+function UI_bhv(data::DataFrames.AbstractDataFrame)
     df = JuliaDB.table(data)
     UI_bhv(df)
 end
-
-# function UI_bhv(data::Observable,bhv_kind::Symbol)
-#
-# end
 
 function UI_bhv(data::PhotometryStructure,bhv_kind::Symbol)
     df = convertin(data,bhv_kind)

@@ -17,13 +17,17 @@ function make_ui(df::UI_bhvs)
     on(t->savefig(df.plt[],path[]),saver)
 
     filter_widg = hbox(layout(df.select_cat),layout(df.select_cont))
-    splitter_widg = vbox("Split by category",adjust_layout!(df.split_cat),vskip(1em),
-    "Split by continuous",adjust_layout!(df.split_cont))
+    adjust_layout!(df.split_cat)
+    adjust_layout!(df.split_cont)
+    splitter_widg = tabulator(OrderedDict("Split by category"=>hbox(df.split_cat),
+    "Split by continuous"=>vbox(hbox("Number of Bins",hskip(em),df.bins),df.split_cont)))
     actions = hbox(df.PLT_button,hskip(1em),Save_button,pltname)
-    plot_options = vbox(df.plot_type,df.y_axis,df.x_axis,df.axis_type,df.compute_error,"Number of Bins",df.bins)
+    plot_options = vbox(df.plot_type,df.y_axis,df.x_axis,df.axis_type,df.compute_error)
     ui = hbox(filter_widg,vbox(actions,df.plt,df.smoother,splitter_widg),plot_options)
-    w = Window()
-    body!(w, ui)
+
+    return ui
+    # w = Window()
+    # body!(w, ui)
 end
 
 function make_ui(df::UI_traces)
@@ -36,16 +40,20 @@ function make_ui(df::UI_traces)
     on(t->savefig(df.plt[],path[]),saver)
 
     filter_widg = hbox(layout(df.select_cat),layout(df.select_cont))
-    splitter_widg = vbox("Split by category",adjust_layout!(df.split_cat),vskip(1em),
-    "Split by continuous",adjust_layout!(df.split_cont))
+    adjust_layout!(df.split_cat)
+    adjust_layout!(df.split_cont)
+    splitter_widg = tabulator(OrderedDict("Split by category"=>hbox(df.split_cat),
+    "Split by continuous"=>vbox(hbox("Number of Bins",hskip(em),df.bins),df.split_cont)))
+    # splitter_widg = vbox("Split by category",adjust_layout!(df.split_cat),vskip(1em),
+    # "Split by continuous",adjust_layout!(df.split_cont))
     plot_options = vbox(df.plot_bhv,df.plot_type,df.y_axis,df.x_axis,
     df.axis_type,df.compute_error,"Number of Bins",df.bins)
     trace_options = hbox(df.tracetype,df.traces,df.x_allignment,vbox("Frame per Seconds",df.fps))
     actions = hbox(df.plot_trace,hskip(1em),Save_button,pltname)
     windows_options = hbox(df.norm_window.widget,hskip(1em),df.plot_window.widget)
-
     ui = hbox(filter_widg,vbox(df.plot_trace,windows_options,df.plt,trace_options,df.smoother,splitter_widg),plot_options)
 
-    w = Window()
-    body!(w, ui)
+    return ui
+    # w = Window()
+    # body!(w, ui)
 end

@@ -39,7 +39,7 @@ function regress_traces(t::IndexedTables.NextTable,bhv_type::Symbol,selected_tra
             ref, sig = columns(tt, (:ref, :sig))
             ref_flat = vcat((parent(r) for r in ref)...)
             sig_flat = vcat((parent(r) for r in sig)...)
-            mask = @. !isnan(ref_flat) & !isnan(sig_flat)
+            mask = @. !isnan.(ref_flat) & !isnan.(sig_flat)
             a, b = linreg(ref_flat[mask], sig_flat[mask])
             @NT(intercept = a, slope = b)
         end
