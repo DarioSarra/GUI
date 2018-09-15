@@ -34,9 +34,6 @@ end
 function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol,fps::Int64)
     provisory = []
     for i = 1:size(data,1)
-        # if isempty(getfield(data[i],bhv_type))
-        #     continue
-        # else
             ongoing = extract_rawtraces(data[i],bhv_type,fps)
             if isempty(provisory)
                 provisory = ongoing
@@ -66,25 +63,20 @@ function extract_rawtraces(bhv_data::DataFrames.AbstractDataFrame, traces_data::
     trial_end = []
     t_range = Int64(bhv_data[1,:In]-2*fps):Int64(bhv_data[1,:Out])
     push!(trial_range,t_range)
-    t_start = bhv_data[1,:In] - t_range[1]
-    t_stop = bhv_data[1,:Out] - t_range[1]
+    t_start = bhv_data[1,:In] - t_range.start
+    t_stop = bhv_data[1,:Out] - t_range.start
     push!(trial_start,t_start)
     push!(trial_end,t_stop)
     for idx = 2:size(bhv_data,1)
         t_range = Int64(bhv_data[idx-1,:Out]+1):Int64(bhv_data[idx,:Out])
-        t_start = bhv_data[idx,:In] - t_range[1]
-        t_stop = bhv_data[idx,:Out] - t_range[1]
+        t_start = bhv_data[idx,:In] - t_range.start
+        t_stop = bhv_data[idx,:Out] - t_range.start
         push!(trial_range,t_range)
         push!(trial_start,t_start)
         push!(trial_end,t_stop)
     end
-    #println(typeof(t_range))
-    #println(eltype(t_range))
-    #println(size(t_range))
-    # ongoing = setcol(ongoing, :In, trial_start)
-    # ongoing = setcol(ongoing, :Out, trial_end)
     for name in names(traces_data)
-        provisory = [ShiftedArray(traces_data[name], -i,default = NaN) for i in select(ongoing,:In)]#in zip(t_range, select(ongoing,:In))]
+        provisory = [ShiftedArray(traces_data[name], -i,default = NaN) for i in select(ongoing,:In)]
         ongoing = setcol(ongoing, name, provisory)
     end
     return ongoing

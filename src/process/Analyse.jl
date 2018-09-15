@@ -54,7 +54,7 @@ function Analysis_t(data::UI_traces)
     trace_type = observe(data.tracetype)[]
     fps = observe(data.fps)[]
     norm_window = selecteditems(data.norm_window)
-    norm_range = Int64(norm_window[1]*fps):Int64(norm_window[2]*fps)
+    norm_range = Int64(norm_window.[1]*fps):Int64(norm_window[2]*fps)
     plot_window = selecteditems(data.plot_window)
     plot_range = Int64(plot_window[1])*fps:Int64(plot_window[2]*fps)
     splitby = Tuple(vcat(observe(data.split_cont)[],observe(data.split_cat)[])) #tupla of symbols

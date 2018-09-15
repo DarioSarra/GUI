@@ -1,5 +1,10 @@
 using GUI
 GUI.launch()
+gr()
+##
+dati = carica("/Users/dariosarra/Google Drive/Flipping/Datasets/Photometry/AAV_Gcamp_DRN/Struct_AAV_Gcamp_DRN.jld2");
+or_data = GUI.extract_rawtraces(dati, :pokes,50)
+GUI.UI_trace(dati,:pokes)
 ##
 c = GUI_ui();
 c.data[] = process_table(c.loading)
