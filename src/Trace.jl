@@ -15,8 +15,10 @@
     plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
     traces #taken from data
     tracetype = dropdown(tracetype_dict,label = "Trace Type") #dictionary of options
+    trace_analysis = CategoricalVariable(:Analysis, ["Sliding_Norm", "Streak_Norm", "Regression"]);
     x_allignment #taken from data
-    norm_window = ContinuousVariable(:NormalisationPeriod,-1.5,-0.5) #use function selecteditems to retrieve values
+    sliding_window = ContinuousVariable(:SlidingNormalisationPeriod,-5.5,-0.5) #use function selecteditems to retrieve values
+    norm_window = ContinuousVariable(:StreakNormalisationPeriod,-1.5,-0.5) #use function selecteditems to retrieve values
     plot_window = ContinuousVariable(:VisualisationPeriod,-2,2) #use function selecteditems to retrieve values
     plot_bhv
     plot_trace

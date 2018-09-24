@@ -52,9 +52,12 @@ end
 function Analysis_t(data::UI_traces)
     selected_trace = observe(data.traces)[]
     trace_type = observe(data.tracetype)[]
+    trace_analysis = data.trace_analysis
     fps = observe(data.fps)[]
     norm_window = selecteditems(data.norm_window)
-    norm_range = Int64(norm_window.[1]*fps):Int64(norm_window[2]*fps)
+    norm_range = Int64(norm_window[1]*fps):Int64(norm_window[2]*fps)
+    sliding_window = selecteditems(data.sliding_window)
+    sliding_range = Int64(sliding_window[1]*fps):Int64(sliding_window[2]*fps)
     plot_window = selecteditems(data.plot_window)
     plot_range = Int64(plot_window[1])*fps:Int64(plot_window[2]*fps)
     splitby = Tuple(vcat(observe(data.split_cont)[],observe(data.split_cat)[])) #tupla of symbols
@@ -69,13 +72,41 @@ function Analysis_t(data::UI_traces)
         end
     end
 
-    if trace_type == "Raw"
-        plot_data = collect_raw(t,selected_trace,plot_range)
-    elseif trace_type == "Normalised"
-        plot_data = normalise_f0(t,bhv_type,selected_trace,norm_range,plot_range);
-    elseif trace_type == "GLM"
-        plot_data = regress_traces(t,bhv_type,selected_trace,norm_range,plot_range);
-    end;
+    if "Sliding_Norm" in GUI.selecteditems(trace_analysis)
+        plot_data = sliding_norm(t,selected_trace,sliding_range)
+        plot_data = popcol(plot_data, selected_trace)
+        plot_data = renamecol(plot_data, :sliding_trace, selected_trace)
+        if "Regression" in GUI.selecteditems(trace_analysis)
+            y_name = String(selected_trace)
+            ref = Symbol(replace(y_name,"sig","ref",1))
+            plot_data = sliding_norm(t,ref,sliding_range)
+            plot_data = popcol(plot_data, ref)
+            plot_data = renamecol(plot_data, :sliding_trace, ref)
+        end
+    else
+        plot_data = t
+    end
+
+    if "Streak_Norm" in GUI.selecteditems(trace_analysis)
+        plot_data = normalise_streak(plot_data,bhv_type,selected_trace,norm_range,plot_range);
+        if "Regression" in GUI.selecteditems(trace_analysis)
+            y_name = String(selected_trace)
+            ref = Symbol(replace(y_name,"sig","ref",1))
+            plot_data = renamecol(plot_data, :corr_trace, :sig)
+            plot_data = normalise_streak(plot_data,bhv_type,ref,norm_range,plot_range);
+            plot_data = renamecol(plot_data, :corr_trace, :ref)
+            plot_data = regress_traces(plot_data,bhv_type,selected_trace,norm_range,plot_range);
+        end
+    else
+        plot_data = collect_raw(plot_data,selected_trace,plot_range)
+        if "Regression" in GUI.selecteditems(trace_analysis)
+            plot_data = renamecol(plot_data, :corr_trace, :sig)
+            plot_data = collect_raw(plot_data,ref,plot_range);
+            plot_data = renamecol(plot_data, :corr_trace, :ref)
+            plot_data = regress_traces(plot_data,bhv_type,selected_trace,norm_range,plot_range);
+        end
+    end
+
     allignment = observe(data.x_allignment)[]
     if allignment != :In
         plot_data = renamecol(plot_data, :corr_trace, :pre_shift)
