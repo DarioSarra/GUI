@@ -1,7 +1,21 @@
 using GUI
 omg = GUI.launch();
-gr()
+
+
 ##
+function carica2(filename)
+    file = FileIO.load(filename)
+    if isa(file, Dict)
+        data = file[collect(keys(file))[1]]
+    else
+        data = FileIO.load(filename) |> DataFrame
+    end
+    return data
+end
+##
+d = filepicker()
+observe(d)[]
+carica2(observe(d)[])
 ##
 dati = carica("/Users/dariosarra/Google Drive/Flipping/Datasets/Photometry/AAV_Gcamp_DRN/Struct_AAV_Gcamp_DRN.jld2");
 uip  = GUI.UI_trace(dati,:pokes);

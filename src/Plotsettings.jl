@@ -1,5 +1,5 @@
 @with_kw mutable struct trace_plot_setting
-    norm_type = radiobuttons(["Raw", "Sliding_Norm", "Streak_Norm"]);
+    norm_type = radiobuttons(["Raw", "Sliding_Norm", "Streak_Norm", "Differential_Norm"]);
     reg_adjustment = checkbox("Regression");
     traccie = Observable{Any}([])
     over = dropdown(traccie,label = "over");

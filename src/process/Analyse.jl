@@ -71,20 +71,6 @@ function Analysis_t(data::UI_traces)
         end
     end
 
-    # #if trace_type == "Raw"
-    # if selected_norm(data) == "Raw"
-    #     plot_data = collect_raw(t,selected_trace,plot_range)
-    # elseif selected_norm(data) == "Streak_Norm"
-    # #elseif trace_type == "Normalised"
-    #     plot_data = normalise_streak(t,bhv_type,selected_trace,norm_range,plot_range);
-    # elseif selected_norm(data) == "Sliding_Norm"
-    #     sel_t = Symbol("sn_"*String(selected_trace))
-    #     plot_data = collect_raw(t,sel_t,plot_range)
-    # elseif trace_type == "GLM"
-    #     plot_data = regress_traces(t,selected_trace,plot_range);
-    #     #plot_data = regress_traces(t,bhv_type,selected_trace,norm_range,plot_range);
-    # end;
-
     if !is_regression(data)
         plot_data = pushcol(t,:corr_trace,collect_traces(data,selected_trace))
     else
