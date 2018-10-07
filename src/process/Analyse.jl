@@ -51,10 +51,11 @@ end
 
 function Analysis_t(data::UI_traces)
     selected_trace = observe(data.traces)[]
+    regressor = Symbol(which_regressor(data))
     trace_type = observe(data.tracetype)[]
     fps = observe(data.fps)[]
     norm_window = selecteditems(data.norm_window)
-    norm_range = Int64(norm_window.[1]*fps):Int64(norm_window[2]*fps)
+    norm_range = Int64(norm_window[1]*fps):Int64(norm_window[2]*fps)
     plot_window = selecteditems(data.plot_window)
     plot_range = Int64(plot_window[1])*fps:Int64(plot_window[2]*fps)
     splitby = Tuple(vcat(observe(data.split_cont)[],observe(data.split_cat)[])) #tupla of symbols
@@ -65,17 +66,32 @@ function Analysis_t(data::UI_traces)
     bin = observe(data.bins)[]
     if !isempty(s)
         for i = 1:size(s,1)
-            t = setcol(t, s[i] => CategoricalArrays.cut(column(t, s[i]),bin))
+            vocabulary = categorize(t, s[i],bin)
+            t = setcol(t, s[i] => get.(vocabulary,select(t,s[i]),0))
         end
     end
 
-    if trace_type == "Raw"
-        plot_data = collect_raw(t,selected_trace,plot_range)
-    elseif trace_type == "Normalised"
-        plot_data = normalise_f0(t,bhv_type,selected_trace,norm_range,plot_range);
-    elseif trace_type == "GLM"
-        plot_data = regress_traces(t,bhv_type,selected_trace,norm_range,plot_range);
-    end;
+    # #if trace_type == "Raw"
+    # if selected_norm(data) == "Raw"
+    #     plot_data = collect_raw(t,selected_trace,plot_range)
+    # elseif selected_norm(data) == "Streak_Norm"
+    # #elseif trace_type == "Normalised"
+    #     plot_data = normalise_streak(t,bhv_type,selected_trace,norm_range,plot_range);
+    # elseif selected_norm(data) == "Sliding_Norm"
+    #     sel_t = Symbol("sn_"*String(selected_trace))
+    #     plot_data = collect_raw(t,sel_t,plot_range)
+    # elseif trace_type == "GLM"
+    #     plot_data = regress_traces(t,selected_trace,plot_range);
+    #     #plot_data = regress_traces(t,bhv_type,selected_trace,norm_range,plot_range);
+    # end;
+
+    if !is_regression(data)
+        plot_data = pushcol(t,:corr_trace,collect_traces(data,selected_trace))
+    else
+        t = pushcol(t,:sig,collect_traces(data,selected_trace))
+        t = pushcol(t,:ref,collect_traces(data,regressor))
+        plot_data = regress_traces(t)
+    end
     allignment = observe(data.x_allignment)[]
     if allignment != :In
         plot_data = renamecol(plot_data, :corr_trace, :pre_shift)
@@ -97,6 +113,7 @@ function Analysis_t(data::UI_traces)
     plot = plot,plot_kwargs = plot_kwargs, xfunc = mean, yfunc = mean)
 
 end
+
 
 function get_error(df::UI_traces)
     inputvalue = observe(df.compute_error)[]

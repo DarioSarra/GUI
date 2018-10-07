@@ -15,8 +15,10 @@
     plot_type = dropdown(collect(keys(plot_dict)),label = "Plot Type")
     traces #taken from data
     tracetype = dropdown(tracetype_dict,label = "Trace Type") #dictionary of options
+    trace_analysis
     x_allignment #taken from data
-    norm_window = ContinuousVariable(:NormalisationPeriod,-1.5,-0.5) #use function selecteditems to retrieve values
+    sliding_window = ContinuousVariable(:SlidingNormalisationPeriod,-5.5,-0.5) #use function selecteditems to retrieve values
+    norm_window = ContinuousVariable(:StreakNormalisationPeriod,-1.5,-0.5) #use function selecteditems to retrieve values
     plot_window = ContinuousVariable(:VisualisationPeriod,-2,2) #use function selecteditems to retrieve values
     plot_bhv
     plot_trace
@@ -24,6 +26,7 @@
     dir = joinpath(dirname(@__DIR__), "Plots")
     filtered_data
 end
+
 function UI_trace(data::Observable,bhv_kind::Symbol,fps = 50)
     ob_data = observe(data)[]
     UI_trace(ob_data,bhv_kind,fps)
@@ -51,6 +54,7 @@ function UI_trace(data::Array{Flipping.PhotometryStructure,1},bhv_kind::Symbol, 
 
     #println("ok before traces options")
     traces  = dropdown(available_traces(or_data),label = "Traces")
+    trace_analysis = trace_plot_setting(available_traces(or_data))
     x_allignment = dropdown(available_allingments(or_data), label = "Allign on")#dictionary of function
     filtered_data = Observable{Any}(JuliaDB.table([1,2],[3,4],names = [:x,:y]))
 
@@ -59,7 +63,7 @@ function UI_trace(data::Array{Flipping.PhotometryStructure,1},bhv_kind::Symbol, 
     processed = UI_traces(bhv_type = bhv_type,or_data = or_data,
     select_cat = select_cat,select_cont = select_cont,
     split_cat = split_cat,split_cont = split_cont,compute_error = compute_error,
-    x_axis = x_axis,y_axis = y_axis,traces = traces,
+    x_axis = x_axis,y_axis = y_axis,traces = traces, trace_analysis = trace_analysis,
     x_allignment = x_allignment,plot_trace = plot_trace,plot_bhv = plot_bhv,
     plt = plt,filtered_data = filtered_data)
 
@@ -96,4 +100,16 @@ function available_allingments(or_data::IndexedTables.NextTable)
         lista[name] = Symbol(name)
     end
     return lista
+end
+
+function selected_norm(UI_t::UI_traces)
+    observe(UI_t.trace_analysis.norm_type)[]
+end
+
+function is_regression(UI_t::UI_traces)
+    observe(UI_t.trace_analysis.reg_adjustment)[]
+end
+
+function which_regressor(UI_t::UI_traces)
+    observe(UI_t.trace_analysis.over)[]
 end

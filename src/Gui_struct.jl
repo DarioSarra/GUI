@@ -20,4 +20,5 @@ function GUI.launch()
     map!(t->process_table(G.loading),G.data,G.loading.data)
     w = Window()
     body!(w, G.ui)
+    return G
 end

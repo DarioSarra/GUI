@@ -19,6 +19,7 @@ import GR
 
 include("Constants.jl");
 include("ColumnTypes.jl");
+include("Plotsettings.jl")
 include("Trace.jl");
 include("Behaviour.jl");
 include("Loading.jl");

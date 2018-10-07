@@ -50,21 +50,6 @@ function filterdf(data::UI_bhvs)
     filterdf(df, categorical, continouos)
 end
 
-# function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable})
-#     #filter for categorical and continouos variable options
-#     subdata = deepcopy(df)
-#     active_cat = categorical[find(isselected(categorical))]
-#     for c in active_cat # go through every active variable
-#         subdata = subdata[in.(select(subdata,c.name),(selecteditems(c),))]
-#     end
-#     active_con = continouos[find(isselected(continouos))]
-#     for c in active_con
-#         subdata = subdata[select(subdata,c.name).>= observe(c.start)[]]
-#         subdata = subdata[select(subdata,c.name).<= observe(c.stop)[]]
-#     end
-#     return subdata
-# end
-
 function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable})
     #filter for categorical and continouos variable options
     mask = map(t->true, df)
@@ -83,38 +68,28 @@ function filterdf(df::IndexedTables.NextTable,observation::Tuple{Array{Categoric
     filterdf(df,observation[1],observation[2])
 end
 
-# function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable})
-#     #filter for categorical and continouos variable options
-#     subdata = deepcopy(df)
-#     active_cat = categorical[find(isselected(categorical))]
-#     for c in active_cat # go through every active variable
-#         subdata = subdata[in.(select(subdata,c.name),(selecteditems(c),))]
-#     end
-#     return subdata
-# end
-#
-# function filterdf(df::IndexedTables.NextTable, continouos::Array{ContinuousVariable})
-#     #filter for categorical and continouos variable options
-#     subdata = deepcopy(df)
-#     active_con = continouos[find(isselected(continouos))]
-#     for c in active_con
-#         subdata = subdata[select(subdata,c.name).>= observe(c.start)[]]
-#         subdata = subdata[select(subdata,c.name).<= observe(c.stop)[]]
-#     end
-#     return subdata
-# end
-
-# function filtra(df::IndexedTables.NextTable,var::AbstractVariable)
-#     subdata = deepcopy(df)
-#     if typeof(var) == CategoricalVariable
-#         println("type of var categorical")
-#         subdata = subdata[in.(select(subdata,var.name),(selecteditems(var),))]
-#     elseif typeof(var) == ContinuousVariable
-#         println("type of var continuous")
-#         subdata = subdata[select(subdata,var.name).>= observe(var.start)[]]
-#         subdata = subdata[select(subdata,var.name).<= observe(var.stop)[]]
-#     else
-#         println("type of var not recognised")
-#     end
-#     return subdata
-# end
+function categorize(t::IndexedTables.NextTable,what::Symbol,n_of_bins)
+    ongoing = sort(t, what)
+    ongoing = pushcol(ongoing, :cumulative, collect(1:size(columns(ongoing,what),1)))
+    binsize = maximum(columns(ongoing,:cumulative))/n_of_bins
+    ongoing = pushcol(ongoing,:pre_bin,floor.(columns(ongoing,:cumulative)./binsize))
+    result = @apply ongoing begin
+        @transform_vec  (:pre_bin) flatten=true begin
+            start = cols(what)[1]
+            stop = cols(what)[end]
+            bin_range = string(start)*":"*string(stop)
+            {proto_binned = fill(bin_range, length(cols(what)))}
+        end
+        @transform_vec what flatten=true begin
+            if length(union(:proto_binned))>1
+                count = [length(@filter :proto_binned == x for x in union(:proto_binned))]
+                idx = findmax(count)[2]
+                {binned = fill(union(:proto_binned)[idx], length(_))}
+            else
+                {binned = :proto_binned}
+            end
+        end
+    end
+    dict_tab = @groupby result what {lemma = union(:binned)[1]}
+    dict = Dict(select(dict_tab,what)[i] => select(dict_tab,:lemma)[i] for i = 1:length(dict_tab))
+end
