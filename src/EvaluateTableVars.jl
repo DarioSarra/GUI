@@ -74,20 +74,20 @@ function categorize(t::IndexedTables.NextTable,what::Symbol,n_of_bins)
     binsize = maximum(columns(ongoing,:cumulative))/n_of_bins
     ongoing = pushcol(ongoing,:pre_bin,floor.(columns(ongoing,:cumulative)./binsize))
     result = @apply ongoing begin
-        @transform_vec  (:pre_bin) flatten=true begin
+        @transform_vec what flatten=true begin
+            if length(union(:pre_bin))>1
+                count = [length(@filter :pre_bin == x for x in union(:pre_bin))]
+                idx = findmax(count)[2]
+                {proto_binned = fill(union(:pre_bin)[idx], length(_))}
+            else
+                {proto_binned = :pre_bin}
+            end
+        end
+        @transform_vec  (:proto_binned) flatten=true begin
             start = cols(what)[1]
             stop = cols(what)[end]
             bin_range = string(start)*":"*string(stop)
-            {proto_binned = fill(bin_range, length(cols(what)))}
-        end
-        @transform_vec what flatten=true begin
-            if length(union(:proto_binned))>1
-                count = [length(@filter :proto_binned == x for x in union(:proto_binned))]
-                idx = findmax(count)[2]
-                {binned = fill(union(:proto_binned)[idx], length(_))}
-            else
-                {binned = :proto_binned}
-            end
+            {binned = fill(bin_range, length(cols(what)))}
         end
     end
     dict_tab = @groupby result what {lemma = union(:binned)[1]}

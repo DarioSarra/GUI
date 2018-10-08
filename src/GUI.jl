@@ -13,7 +13,6 @@ using Reexport
 @reexport using WebIO
 @reexport using IndexedTables
 @reexport using Parameters
-@reexport using NaNMath
 import GR
 
 
