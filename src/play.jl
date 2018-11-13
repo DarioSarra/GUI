@@ -1,6 +1,9 @@
 using GUI
 omg = GUI.launch();
-
+##
+gr(xflip=false,xtick = :out,legend=true,markerstrokecolor = :black,
+color = :auto,background_color = RGBA(1,1,1,0),
+ylim=:auto,xlim = :auto)
 
 ##
 function carica2(filename)

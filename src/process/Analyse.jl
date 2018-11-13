@@ -82,13 +82,14 @@ function Analysis_t(data::UI_traces)
     if allignment != :In
         plot_data = renamecol(plot_data, :corr_trace, :pre_shift)
         plot_data = @apply plot_data begin
-            JuliaDBMeta.@filter !isnan(cols(allignment))
+            JuliaDBMeta.@filter !isnan.(cols(allignment))
             @transform {difference = :In - cols(allignment)}
             @transform {corr_trace = lag(:pre_shift,:difference,default = NaN)}
         end
     end
     y = :corr_trace #:Symbol
     axis_type = :discrete #Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
+    time_range = collect(plot_range)./fps
     smoother = observe(data.smoother)[]
     package = GroupedError()
     plot = plot_dict["line plot"] #function plot, groupedbar,
