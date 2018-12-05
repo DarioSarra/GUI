@@ -25,7 +25,7 @@ Method2: expect to find a column called corr_trace to be analized
 function normalise_streak(t::IndexedTables.NextTable,bhv_type::Symbol,selected_trace::Symbol,norm_range::Range,plot_range::Range)
     if bhv_type == :pokes
         plot_data = @apply t begin
-            @transform_vec (:Session, :Streak_n) flatten=true begin
+            @transform_vec (:Session, :Streak) flatten=true begin
                 v = cols(selected_trace)
                 m = NaNMath.mean(v[1][norm_range])
                 {mean = fill(m, length(v))}
@@ -52,7 +52,7 @@ function normalise_streak(t::IndexedTables.NextTable,bhv_type::Symbol,norm_range
     t = renamecol(t, :corr_trace, :to_analyze)
     if bhv_type == :pokes
         plot_data = @apply t begin
-            @transform_vec (:Session, :Streak_n) flatten=true begin
+            @transform_vec (:Session, :Streak) flatten=true begin
                 v = cols(selected_trace)
                 m = NaNMath.mean(v[1][norm_range])
                 {mean = fill(m, length(v))}

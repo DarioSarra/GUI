@@ -32,8 +32,8 @@ function UI_bhv(data::DataFrames.AbstractDataFrame)
     UI_bhv(df)
 end
 
-function UI_bhv(data::PhotometryStructure,bhv_kind::Symbol)
-    df = convertin(data,bhv_kind)
+function UI_bhv(data::Array{Flipping.PhotometryStructure,1},bhv_kind::Symbol)
+    df = convertin_DB(data,bhv_kind)
     UI_bhv(df)
 end
 

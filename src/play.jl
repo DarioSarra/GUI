@@ -1,9 +1,11 @@
 using GUI
 omg = GUI.launch();
 ##
-gr(xflip=false,xtick = :out,legend=true,markerstrokecolor = :black,
+x = filepicker()
+observe(x)[]
+gr(xflip=false,xtick = :out,legend=false,markerstrokecolor = :black,
 color = :auto,background_color = RGBA(1,1,1,0),
-ylim=:auto,xlim = :auto)
+ylim=:auto,xlim = :auto, color = :auto,markersize = 7)
 ##
 function carica2(filename)
     file = FileIO.load(filename)
