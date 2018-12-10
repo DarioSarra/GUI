@@ -3,7 +3,7 @@ omg = GUI.launch();
 ##
 x = filepicker()
 observe(x)[]
-gr(xflip=false,xtick = :out,legend=false,markerstrokecolor = :black,
+gr(xflip=false,xtick = :out,legend=:topright,markerstrokecolor = :black,
 color = :auto,background_color = RGBA(1,1,1,0),
 ylim=:auto,xlim = :auto, color = :auto,markersize = 7)
 ##
