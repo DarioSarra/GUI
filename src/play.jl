@@ -1,11 +1,15 @@
 using GUI
 omg = GUI.launch();
 ##
-x = filepicker()
-observe(x)[]
-gr(xflip=false,xtick = :out,legend=:topright,markerstrokecolor = :black,
+gr(xflip=false,xtick = :out,legend=:topleft,markerstrokecolor = :black,
 color = :auto,background_color = RGBA(1,1,1,0),
-ylim=:auto,xlim = :auto, color = :auto,markersize = 7)
+ylim=:auto,xlim = :auto, color = :auto,markersize = 5,title = "")
+##
+x = filepicker()
+t = carica(observe(x)[])
+typeof(t[:Box])
+
+union(t[:Session])
 ##
 function carica2(filename)
     file = FileIO.load(filename)
@@ -19,7 +23,8 @@ end
 ##
 d = filepicker()
 observe(d)[]
-carica2(observe(d)[])
+print(observe(d)[])
+carica(observe(d)[])
 ##
 dati = carica("/Users/dariosarra/Google Drive/Flipping/Datasets/Photometry/AAV_Gcamp_DRN/Struct_AAV_Gcamp_DRN.jld2");
 uip  = GUI.UI_trace(dati,:pokes);

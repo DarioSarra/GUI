@@ -57,7 +57,9 @@ function Analysis_t(data::UI_traces)
     norm_window = selecteditems(data.norm_window)
     norm_range = Int64(norm_window[1]*fps):Int64(norm_window[2]*fps)
     plot_window = selecteditems(data.plot_window)
-    plot_range = Int64(plot_window[1])*fps:Int64(plot_window[2]*fps)
+    p_start = Int64(plot_window[1]*fps)
+    p_stop = Int64(plot_window[2]*fps)
+    plot_range = p_start:p_stop
     splitby = Tuple(vcat(observe(data.split_cont)[],observe(data.split_cat)[])) #tupla of symbols
     bhv_type = observe(data.bhv_type)
     compute_error = get_error(data)

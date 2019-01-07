@@ -34,18 +34,17 @@ end
 function extract_rawtraces(data::Array{PhotometryStructure}, bhv_type::Symbol,fps::Int64)
     provisory = []
     for i = 1:size(data,1)
-            ongoing = extract_rawtraces(data[i],bhv_type,fps)
-            if isempty(provisory)
-                provisory = ongoing
-            else
-                try
-                    provisory = JuliaDB.merge(provisory,ongoing)
-                catch
-                    println("impossible to merge session ",select(ongoing,:Session)[1])
-                    println("index of data is ", i)
-                end
+        ongoing = extract_rawtraces(data[i],bhv_type,fps)
+        if isempty(provisory)
+            provisory = ongoing
+        else
+            try
+                provisory = JuliaDB.merge(provisory,ongoing)
+            catch
+                println("impossible to merge session ",select(ongoing,:Session)[1])
+                println("index of data is ", i)
             end
-        # end
+        end
     end
     return provisory
 end

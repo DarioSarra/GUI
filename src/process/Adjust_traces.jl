@@ -85,7 +85,7 @@ function regress_traces(t::IndexedTables.NextTable)
             @NT(intercept = a, slope = b)
         end
         JuliaDB.join(t, _, lkey = :Session, rkey = :Session)
-        @transform {corr_trace = ShiftedArray(parent(:sig) .- (:intercept .+ :slope .* parent(:ref)), shifts(:sig))}
+        @transform {corr_trace = ShiftedArray(parent(:sig) .- (:intercept .+ :slope .* parent(:ref)), shifts(:sig), default = NaN)}
     end;
     return res
 end
@@ -161,7 +161,9 @@ function collect_traces(data::UI_traces,selected_trace::Symbol)
     norm_window = selecteditems(data.norm_window)
     norm_range = Int64(norm_window[1]*fps):Int64(norm_window[2]*fps)
     plot_window = selecteditems(data.plot_window)
-    plot_range = Int64(plot_window[1])*fps:Int64(plot_window[2]*fps)
+    p_start = Int64(plot_window[1]*fps)
+    p_stop = Int64(plot_window[2]*fps)
+    plot_range = p_start:p_stop
     bhv_type = observe(data.bhv_type)
 
     if selected_norm(data) == "Raw"
