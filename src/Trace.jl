@@ -50,7 +50,7 @@ function UI_trace(data::Array{Flipping.PhotometryStructure,1},bhv_kind::Symbol, 
     #println("ok before plot options")
     compute_error = dropdown(vcat(["none","bootstrap","all"],cols),label = "Compute_error")
     x_axis = dropdown(cols,label = "X axis")
-    y_axis = dropdown(vcat(["density", "cumulative"],cols),label = "Y axis")
+    y_axis = dropdown(vcat(saved_plot_analysis,cols),label = "Y axis")
 
     #println("ok before traces options")
     traces  = dropdown(available_traces(or_data),label = "Traces")

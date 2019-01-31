@@ -51,7 +51,7 @@ function UI_bhv(data::IndexedTables.NextTable)
 
     compute_error = dropdown(vcat(["none","bootstrap","all"],cols),label = "Compute_error")
     x_axis = dropdown(cols,label = "X axis")
-    y_axis = dropdown(vcat(["density", "cumulative"],cols),label = "Y axis")
+    y_axis = dropdown(vcat(saved_plot_analysis,cols),label = "Y axis")
 
     filtered_data = map(t->filterdf(or_data,select_cat,select_cont),plotter)
 

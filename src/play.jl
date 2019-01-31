@@ -1,6 +1,8 @@
 using GUI
 omg = GUI.launch();
 ##
+gr(legend=:topright,color = :auto, line = [:solid, :dash])
+##
 gr(xflip=false,xtick = :out,legend=:topleft,markerstrokecolor = :black,
 color = :auto,background_color = RGBA(1,1,1,0),
 ylim=:auto,xlim = :auto, color = :auto,markersize = 5,title = "")

@@ -7,6 +7,8 @@ const plot_dict = OrderedDict(
     #"histogram2d" => histogram2d,
     #"marginalhist" => marginalhist)
 
+const saved_plot_analysis = ["density", "cumulative", "hazard"]
+
 const x_type_dict = OrderedDict(
     "auto" => :auto,
     "discrete" => :discrete,
