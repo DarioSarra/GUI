@@ -37,7 +37,7 @@ function UI_bhv(data::Array{Flipping.PhotometryStructure,1},bhv_kind::Symbol)
     UI_bhv(df)
 end
 
-function UI_bhv(data::IndexedTables.NextTable)
+function UI_bhv(data::IndexedTables.IndexedTable)
     or_data = data
     PLT_button = button("Plot")
     plotter = observe(PLT_button);

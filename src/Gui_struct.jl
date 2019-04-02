@@ -15,7 +15,7 @@ function process_table(l::loaders)
     make_ui(ongoingdata)
 end
 
-function GUI.launch()
+function launch()
     G = GUI_ui();
     map!(t->process_table(G.loading),G.data,G.loading.data)
     w = Window()

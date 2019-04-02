@@ -78,9 +78,11 @@ function available_traces(or_data::Observable)
     available_traces(or_data[])
 end
 
-function available_traces(or_data::IndexedTables.NextTable)
+function available_traces(or_data::IndexedTables.IndexedTable)
     name_list = String.(colnames(or_data))
-    selection = name_list[contains.(name_list,"_sig") .| contains.(name_list,"_ref") .| contains.(name_list,"Pokes")]
+    # selection = name_list[occursin.(name_list,"_sig") .| occursin.(name_list,"_ref") .| occursin.(name_list,"Pokes")]
+    name_list =collect(name_list)
+    selection = name_list[occursin.("_sig",name_list) .| occursin.("_ref",name_list) .| occursin.("Pokes",name_list)]
     lista = OrderedDict()
     for name in selection
         lista[name] = Symbol(name)
@@ -92,9 +94,11 @@ function available_allingments(or_data::Observable)
     available_allingments(or_data[])
 end
 
-function available_allingments(or_data::IndexedTables.NextTable)
+function available_allingments(or_data::IndexedTables.IndexedTable)
     Columns = String.(colnames(or_data))
-    result = Columns[(contains.(Columns,"In").|contains.(Columns,"Out")).& .!contains.(Columns,"Poke")]
+    # result = Columns[(occursin.(Columns,"In").|occursin.(Columns,"Out")).& .!occursin.(Columns,"Poke")]
+    Columns = collect(Columns)
+    result = Columns[(occursin.("In",Columns).|occursin.("Out",Columns)).& .!occursin.("Poke",Columns)]
     lista = OrderedDict()
     for name in result
         lista[name] = Symbol(name)

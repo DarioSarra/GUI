@@ -59,20 +59,22 @@ function Analysis_t(data::UI_traces)
     plot_window = selecteditems(data.plot_window)
     plot_range = Int64(plot_window[1])*fps:Int64(plot_window[2]*fps)
     splitby = Tuple(vcat(observe(data.split_cont)[],observe(data.split_cat)[])) #tupla of symbols
-    bhv_type = observe(data.bhv_type)
+    bhv_type = data.bhv_type #data.bhv_type#observe(data.bhv_type)
     compute_error = get_error(data)
     t = data.filtered_data[];
     s = Symbol.(observe(data.split_cont)[])
     bin = observe(data.bins)[]
     if !isempty(s)
-        for i = 1:size(s,1)
-            vocabulary = categorize(t, s[i],bin)
-            t = setcol(t, s[i] => get.(vocabulary,select(t,s[i]),0))
-        end
+        t = categorize_cols(t,s,bin)
+        # for i = 1:size(s,1)
+        #     vocabulary = categorize(t, s[i],bin)
+        #     t = @transform t {binned =  get(vocabulary,s[i],0)}
+        #     t = setcol(t, s[i] => cols(t,:binned))
+        # end
     end
 
     if !is_regression(data)
-        plot_data = pushcol(t,:corr_trace,collect_traces(data,selected_trace))
+        plot_data = pushcol(t,:correctedTrace,collect_traces(data,selected_trace))
     else
         t = pushcol(t,:sig,collect_traces(data,selected_trace))
         t = pushcol(t,:ref,collect_traces(data,regressor))
@@ -80,14 +82,14 @@ function Analysis_t(data::UI_traces)
     end
     allignment = observe(data.x_allignment)[]
     if allignment != :In
-        plot_data = renamecol(plot_data, :corr_trace, :pre_shift)
+        plot_data = renamecol(plot_data, :correctedTrace, :pre_shift)
         plot_data = @apply plot_data begin
             JuliaDBMeta.@filter !isnan.(cols(allignment))
             @transform {difference = :In - cols(allignment)}
-            @transform {corr_trace = lag(:pre_shift,:difference,default = NaN)}
+            @transform {correctedTrace = lag(:pre_shift,:difference,default = NaN)}
         end
     end
-    y = :corr_trace #:Symbol
+    y = :correctedTrace #:Symbol
     axis_type = :discrete #Symbol(observe(df.axis_type)[]) #:Symbol :auto, :discrete, :continouos
     time_range = collect(plot_range)./fps
     smoother = observe(data.smoother)[]

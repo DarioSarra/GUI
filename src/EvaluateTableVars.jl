@@ -1,4 +1,4 @@
-function distinguish(data::IndexedTables.NextTable)
+function distinguish(data::IndexedTables.IndexedTable)
     categorical_vars = []
     continuous_vars = []
     for x in colnames(data)
@@ -15,20 +15,23 @@ function distinguish(data::IndexedTables.NextTable)
     return categorical_vars, continuous_vars
 end
 
-function buildvars(data::IndexedTables.NextTable)
+function buildvars(data::IndexedTables.IndexedTable)
     cat, con = distinguish(data)
     buildvars(cat, con, data)
 end
 
-function buildvars(cat::Array{Any}, con::Array{Any}, data::IndexedTables.NextTable)
-    categorical_vars = Array{CategoricalVariable,1}(0)
-    continuous_vars = Array{ContinuousVariable,1}(0)
+function buildvars(cat::Array{Any}, con::Array{Any}, data::IndexedTables.IndexedTable)
+    # categorical_vars = Array{CategoricalVariable,1}(0)
+    # continuous_vars = Array{ContinuousVariable,1}(0)
+    categorical_vars = Array{CategoricalVariable,1}(undef,0)
+    continuous_vars = Array{ContinuousVariable,1}(undef,0)
     for x in cat
         values = unique(select(data,x))
         push!(categorical_vars,CategoricalVariable(x, values))
     end
     for x in con
-        mask = @. !isnan.(select(data,x))
+        # mask = @. !isnan.(select(data,x))
+        mask = .!isnan.(select(data,x))
         lowest = minimum(select(data,x)[mask])
         highest = maximum(select(data,x)[mask])
         push!(continuous_vars,ContinuousVariable(Symbol(x), lowest,highest))
@@ -50,25 +53,25 @@ function filterdf(data::UI_bhvs)
     filterdf(df, categorical, continouos)
 end
 
-function filterdf(df::IndexedTables.NextTable, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable})
+function filterdf(df::IndexedTables.IndexedTable, categorical::Array{CategoricalVariable}, continouos::Array{ContinuousVariable})
     #filter for categorical and continouos variable options
     mask = map(t->true, df)
-    active_cat = categorical[find(isselected(categorical))]
+    active_cat = categorical[findall(isselected(categorical))]
     for c in active_cat # go through every active variable
         mask .&= in.(select(df,c.name),(selecteditems(c),))
     end
-    active_con = continouos[find(isselected(continouos))]
+    active_con = continouos[findall(isselected(continouos))]
     for c in active_con
         mask .&= observe(c.start)[] .<= select(df,c.name).<= observe(c.stop)[]
     end
     return df[mask]
 end
 
-function filterdf(df::IndexedTables.NextTable,observation::Tuple{Array{CategoricalVariable,1},Array{ContinuousVariable,1}})
+function filterdf(df::IndexedTables.IndexedTable,observation::Tuple{Array{CategoricalVariable,1},Array{ContinuousVariable,1}})
     filterdf(df,observation[1],observation[2])
 end
 
-function categorize(t::IndexedTables.NextTable,what::Symbol,n_of_bins)
+function categorize(t::IndexedTables.IndexedTable,what::Symbol,n_of_bins)
     ongoing = sort(t, what)
     ongoing = pushcol(ongoing, :cumulative, collect(1:size(columns(ongoing,what),1)))
     binsize = maximum(columns(ongoing,:cumulative))/n_of_bins
@@ -92,4 +95,14 @@ function categorize(t::IndexedTables.NextTable,what::Symbol,n_of_bins)
     end
     dict_tab = @groupby result what {lemma = union(:binned)[1]}
     dict = Dict(select(dict_tab,what)[i] => select(dict_tab,:lemma)[i] for i = 1:length(dict_tab))
+end
+
+function categorize_cols(t::IndexedTables.IndexedTable, s::AbstractVector{<:Symbol}, bin::Integer)
+    for i = 1:length(s)
+        vocabulary = GUI.categorize(t, s[i],bin)
+        #binned = map(x->get(vocabulary,x,0),select(t,s[i]))
+        binned = @map t get(vocabulary,cols(s[i]),0)
+        t = setcol(t, s[i],binned)
+    end
+    return t
 end

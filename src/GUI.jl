@@ -2,9 +2,9 @@ module GUI
 using Reexport
 @reexport using Flipping
 @reexport using Widgets
-@reexport using InteractBulma
+@reexport using Interact
 @reexport using GroupedErrors
-@reexport using StatPlots
+@reexport using StatsPlots
 @reexport using Plots
 @reexport using Blink
 @reexport using Observables
@@ -14,7 +14,6 @@ using Reexport
 @reexport using IndexedTables
 @reexport using Parameters
 import GR
-
 
 include("Constants.jl");
 include("ColumnTypes.jl");
@@ -31,6 +30,10 @@ include(joinpath("Process","groupederrors.jl"));
 include(joinpath("Process","Prepare_plot.jl"))
 include("Gui_struct.jl")
 
-export launch
+export launch,linreg
+
+function linreg(x,y)
+    hcat(fill!(similar(x),1),x)\y
+end
 
 end

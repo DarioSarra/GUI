@@ -92,6 +92,6 @@ Base.map!(var::AbstractVariable, w, v::DataFrames.AbstractDataFrame) =
     map!(var, w, column(v, name(var)))
 
 layout(c::AbstractVariable) = dom"div.column"(c.widget)
-layout(cs::AbstractArray{<:AbstractVariable}) = Node(:div, className = "column")(layout.(cs)...)
+layout(cs::AbstractArray{<:AbstractVariable}) = node(:div, className = "column")(layout.(cs)...)
 
 ##(var::AbstractVariable)(x) = predicate(var)(x)

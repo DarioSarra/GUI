@@ -1,21 +1,9 @@
 using GUI
 omg = GUI.launch();
 ##
-x = filepicker()
-observe(x)[]
-gr(xflip=false,xtick = :out,legend=:topright,markerstrokecolor = :black,
-color = :auto,background_color = RGBA(1,1,1,0),
-ylim=:auto,xlim = :auto, color = :auto,markersize = 7)
+gr(legend=false)
 ##
-function carica2(filename)
-    file = FileIO.load(filename)
-    if isa(file, Dict)
-        data = file[collect(keys(file))[1]]
-    else
-        data = FileIO.load(filename) |> DataFrame
-    end
-    return data
-end
+GUI.categorize
 ##
 d = filepicker()
 observe(d)[]

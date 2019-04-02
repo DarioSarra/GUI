@@ -1,7 +1,7 @@
 # filepath = filepicker();
 # filename = observe(filepath);
 # dir = dirname(observe(filepath)[])
-# data = Observable{Any}(IndexedTables.NextTable)
+# data = Observable{Any}(IndexedTables.IndexedTable)
 # experiment_type = dropdown(experiment_type_dict, label)
 # map!(carica, data, filename)
 # filestuff = hbox(filepath)
