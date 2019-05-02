@@ -15,6 +15,7 @@ using Reexport
 @reexport using Parameters
 import GR
 
+Plotsfolder = joinpath(pwd(),"Plots")
 if !ispath(Plotsfolder)
     mkdir(Plotsfolder)
 end
