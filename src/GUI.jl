@@ -15,6 +15,10 @@ using Reexport
 @reexport using Parameters
 import GR
 
+if !ispath(Plotsfolder)
+    mkdir(Plotsfolder)
+end
+
 include("Constants.jl");
 include("ColumnTypes.jl");
 include("Plotsettings.jl")

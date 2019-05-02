@@ -1,7 +1,7 @@
 using GUI
 omg = GUI.launch();
 ##
-gr(legend=false)
+gr(legend=true, grid = false,xticks = :auto)
 ##
 GUI.categorize
 ##

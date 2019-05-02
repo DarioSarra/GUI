@@ -8,7 +8,7 @@ the frame value identified by the column :Out
 function collect_raw(t::IndexedTables.IndexedTable,selected_trace::Symbol,plot_range::UnitRange)
     plot_data = JuliaDBMeta.@apply t begin
         JuliaDBMeta.@transform {ending = (:Out - :In)}
-        JuliaDBMeta.@transform {new_range = (range#=colon=#(plot_range.start,:ending+1))}
+        JuliaDBMeta.@transform {new_range = (range(plot_range.start,:ending+1))}
         JuliaDBMeta.@transform {new_array = (cols(selected_trace)[:new_range])}
         JuliaDBMeta.@transform {correctedTrace = ShiftedArray(:new_array, plot_range.start, default = NaN)}
     end;
